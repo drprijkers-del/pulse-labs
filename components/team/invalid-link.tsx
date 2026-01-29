@@ -16,8 +16,8 @@ export function InvalidLink({ message }: InvalidLinkProps) {
       <header className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🐔</span>
-            <span className="text-sm text-stone-400">{t('pinkPollos')}</span>
+            <span className="text-xl">⚗️</span>
+            <span className="text-sm text-stone-400">{t('pulse')}</span>
           </div>
           <div className="flex items-center gap-3">
             <LanguageToggle />

@@ -140,15 +140,10 @@ export function CheckinSuccess({ mood, streak, teamStats, teamName }: CheckinSuc
       <header className="p-6 relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🐔</span>
-            <span className="text-sm text-stone-400">{t('pinkPollos')}</span>
+            <span className="text-xl">⚗️</span>
+            <span className="text-sm text-stone-400">{t('pulse')}</span>
           </div>
-          <div className="flex items-center gap-3">
-            <LanguageToggle />
-            <span className="inline-flex items-center gap-1 text-xs text-stone-500 border border-stone-200 px-2 py-1 rounded-full">
-              ⚗️ {t('pulse')}
-            </span>
-          </div>
+          <LanguageToggle />
         </div>
       </header>
 

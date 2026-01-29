@@ -14,8 +14,8 @@ export function LoginPageContent() {
       {/* Header */}
       <header className="p-6 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl">🐔</span>
-          <span className="text-sm text-stone-400">{t('pinkPollos')}</span>
+          <span className="text-xl">⚗️</span>
+          <span className="text-sm text-stone-400">{t('pulse')}</span>
         </Link>
         <LanguageToggle />
       </header>

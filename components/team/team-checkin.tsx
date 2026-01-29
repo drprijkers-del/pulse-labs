@@ -137,15 +137,10 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
       <header className="p-6 relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🐔</span>
-            <span className="text-sm text-stone-400">{t('pinkPollos')}</span>
+            <span className="text-xl">⚗️</span>
+            <span className="text-sm text-stone-400">{t('pulse')}</span>
           </div>
-          <div className="flex items-center gap-3">
-            <LanguageToggle />
-            <span className="inline-flex items-center gap-1 text-xs text-stone-500 border border-stone-200 px-2 py-1 rounded-full">
-              ⚗️ {t('pulse')}
-            </span>
-          </div>
+          <LanguageToggle />
         </div>
       </header>
 
@@ -176,12 +171,15 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
                   text-xl md:text-2xl font-bold
                   transition-all duration-200
                   ${selectedSignal === signal.value
-                    ? `${signal.color} text-white shadow-lg shadow-cyan-500/30 scale-110`
-                    : 'bg-white border-2 border-stone-200 text-stone-400 hover:border-cyan-300 hover:text-cyan-600'
+                    ? `${signal.color} text-white shadow-lg shadow-cyan-500/30 scale-110 ring-4 ring-cyan-200`
+                    : 'bg-white border-2 border-stone-200 text-stone-400 hover:border-cyan-400 hover:text-cyan-600 hover:scale-105 hover:shadow-md active:scale-95'
                   }
                 `}
               >
                 {signal.value}
+                {selectedSignal === signal.value && (
+                  <span className="absolute inset-0 rounded-xl animate-ping opacity-20 bg-cyan-400" style={{ animationDuration: '2s' }} />
+                )}
               </button>
             ))}
           </div>

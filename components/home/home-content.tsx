@@ -53,8 +53,8 @@ export function HomeContent() {
       {/* Header */}
       <header className="p-6 flex justify-between items-center relative z-10">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🐔</span>
-          <span className="text-sm font-medium text-stone-400">{t('pinkPollos')}</span>
+          <span className="text-xl">⚗️</span>
+          <span className="text-sm font-medium text-stone-400">{t('pulse')}</span>
         </div>
         <div className="flex items-center gap-4">
           <Link
