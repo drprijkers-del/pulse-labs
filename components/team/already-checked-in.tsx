@@ -28,46 +28,90 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
     ? getMoodEmoji(Math.round(stats.average_mood))
     : '🙂'
 
+  const isGoodStreak = streak >= 3
+  const isGreatStreak = streak >= 7
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="text-center max-w-md">
-        {/* Already checked in */}
-        <div className="text-6xl mb-6">✅</div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Al ingecheckt vandaag!
-        </h1>
-        <p className="text-gray-500 mb-8">
-          Kom morgen terug voor je volgende check-in.
-        </p>
-
-        {/* Streak */}
-        {streak > 1 && (
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-400 to-pink-500 text-white px-4 py-2 rounded-full mb-8">
-            <span className="text-lg">🔥</span>
-            <span className="font-medium">{streak} dagen streak!</span>
+    <div className="min-h-screen flex flex-col bg-stone-50">
+      {/* Header */}
+      <header className="p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🐔</span>
+            <span className="text-sm text-stone-400">Pink Pollos</span>
           </div>
-        )}
+          <span className="tool-badge">Mood Meter</span>
+        </div>
+      </header>
 
-        {/* Team stats */}
-        {stats && stats.total_entries > 0 && (
-          <div className="bg-gray-50 rounded-2xl p-6">
-            <p className="text-sm text-gray-500 mb-3">Team gemiddeld vandaag</p>
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-4xl">{avgMoodEmoji}</span>
-              <span className="text-2xl font-bold text-gray-900">
-                {stats.average_mood.toFixed(1)}
-              </span>
+      {/* Main content */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
+        <div className="text-center max-w-md">
+          {/* Already checked in */}
+          <div className="text-7xl mb-6">✅</div>
+          <h1 className="text-2xl font-bold text-stone-900 mb-2">
+            Al ingecheckt vandaag!
+          </h1>
+          <p className="text-stone-500 mb-8">
+            Kom morgen terug voor je volgende check-in.
+          </p>
+
+          {/* Streak - prominent */}
+          {streak > 0 && (
+            <div className={`
+              mb-8 p-6 rounded-3xl
+              ${isGreatStreak
+                ? 'bg-gradient-to-br from-orange-400 via-pink-500 to-purple-500 text-white shadow-xl'
+                : isGoodStreak
+                  ? 'bg-gradient-to-br from-orange-400 to-pink-500 text-white shadow-lg'
+                  : 'bg-stone-100'
+              }
+            `}>
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <span className={`text-4xl ${streak > 1 ? 'animate-flame' : ''}`}>
+                  {streak > 1 ? '🔥' : '✨'}
+                </span>
+                <span className={`text-4xl font-bold ${isGoodStreak ? 'text-white' : 'text-stone-900'}`}>
+                  {streak}
+                </span>
+              </div>
+              <p className={`text-sm font-medium ${isGoodStreak ? 'text-white/90' : 'text-stone-500'}`}>
+                {streak === 1 ? 'dag streak' : 'dagen streak!'}
+              </p>
+              {isGreatStreak && (
+                <p className="text-xs text-white/70 mt-2">
+                  Je bent on fire! 💪
+                </p>
+              )}
             </div>
-            <p className="text-xs text-gray-400 mt-3">
-              {stats.total_entries} {stats.total_entries === 1 ? 'check-in' : 'check-ins'} vandaag
-            </p>
-          </div>
-        )}
-      </div>
+          )}
+
+          {/* Team stats */}
+          {stats && stats.total_entries > 0 && (
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-stone-100">
+              <p className="text-xs text-stone-400 uppercase tracking-wide mb-4">Team vandaag</p>
+              <div className="flex items-center justify-center gap-4">
+                <span className="text-5xl">{avgMoodEmoji}</span>
+                <div className="text-left">
+                  <div className="text-3xl font-bold text-stone-900">
+                    {stats.average_mood.toFixed(1)}
+                  </div>
+                  <div className="text-sm text-stone-500">
+                    gemiddeld
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-stone-100 text-sm text-stone-500">
+                {stats.total_entries} check-ins vandaag
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
 
       {/* Footer */}
-      <footer className="absolute bottom-4 text-center text-xs text-gray-400">
-        {teamName} • Pink Pollos Lab
+      <footer className="p-6 text-center text-xs text-stone-400">
+        {teamName}
       </footer>
     </div>
   )
