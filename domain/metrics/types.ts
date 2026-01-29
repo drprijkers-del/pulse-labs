@@ -14,6 +14,15 @@ export type TrendDirection = 'rising' | 'stable' | 'declining'
 // Zone labels (replaces raw numbers for display)
 export type PulseZone = 'under_pressure' | 'mixed_signals' | 'steady_state' | 'high_confidence'
 
+// Day state - creates tension and closure
+export type DayState = 'day_forming' | 'signal_emerging' | 'day_complete'
+
+// Week state - creates anticipation and rhythm
+export type WeekState = 'week_building' | 'signal_forming' | 'week_complete'
+
+// Data maturity - progression without badges
+export type DataMaturity = 'calibrating' | 'establishing_baseline' | 'pattern_forming' | 'reliable_signal'
+
 // Individual metric with trend
 export interface PulseMetric {
   value: number | null           // Raw average (null if no data)
@@ -48,6 +57,17 @@ export interface TeamMetrics {
     teamSize: number             // Total participants
     rate: number                 // Percentage (0-100)
     trend: TrendDirection        // vs previous period
+  }
+
+  // Temporal state - creates rhythm and closure
+  dayState: DayState             // Current day's completion state
+  weekState: WeekState           // Current week's completion state
+
+  // Data maturity - progression model
+  maturity: {
+    level: DataMaturity
+    daysOfData: number           // Total days with check-ins
+    consistencyRate: number      // % of days with 30%+ participation
   }
 
   // Metadata

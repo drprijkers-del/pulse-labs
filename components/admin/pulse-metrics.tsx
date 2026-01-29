@@ -11,6 +11,11 @@ import {
   getTrendColor,
   getConfidenceLabel,
   formatParticipationRate,
+  getDayStateLabel,
+  getWeekStateLabel,
+  getMaturityLabel,
+  getMaturityDescription,
+  getMaturityColor,
 } from '@/domain/metrics/calculations'
 
 interface PulseMetricsProps {
@@ -102,7 +107,7 @@ export function PulseMetrics({ metrics, insights }: PulseMetricsProps) {
           <div className="text-4xl mb-4 opacity-40">📊</div>
           <h3 className="font-semibold text-stone-600 mb-2">{t.notEnoughData}</h3>
           <p className="text-sm text-stone-400 mb-4">{t.notEnoughDetail}</p>
-          <ParticipationBar metrics={metrics} t={t} />
+          <ParticipationBar metrics={metrics} t={t} language={language} />
         </CardContent>
       </Card>
     )
@@ -246,8 +251,25 @@ export function PulseMetrics({ metrics, insights }: PulseMetricsProps) {
         </Card>
       )}
 
-      {/* Participation */}
-      <ParticipationBar metrics={metrics} t={t} />
+      {/* Participation with day state */}
+      <ParticipationBar metrics={metrics} t={t} language={language} />
+
+      {/* Data maturity - progression indicator */}
+      <Card>
+        <CardContent className="py-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-stone-500">
+              {language === 'nl' ? 'Signaal status' : 'Signal status'}
+            </span>
+            <span className={`text-xs px-2 py-1 rounded-full ${getMaturityColor(metrics.maturity.level)}`}>
+              {getMaturityLabel(metrics.maturity.level, language)}
+            </span>
+          </div>
+          <p className="text-xs text-stone-400 mt-1">
+            {getMaturityDescription(metrics.maturity.level, metrics.maturity.daysOfData, language)}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Insights */}
       {insights.length > 0 && (
@@ -303,21 +325,29 @@ function TimeButton({
   )
 }
 
-// Participation progress bar
+// Participation progress bar with day state
 function ParticipationBar({
   metrics,
   t,
+  language,
 }: {
   metrics: TeamMetrics
   t: Record<string, string>
+  language: 'nl' | 'en'
 }) {
   return (
     <Card>
       <CardContent className="py-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-stone-500">{t.participation}</span>
-          <span className="text-sm font-medium text-stone-700">
-            {metrics.participation.today} {t.of} {metrics.participation.teamSize} {t.checkedIn}
+          <span className={`text-xs px-2 py-0.5 rounded-full ${
+            metrics.dayState === 'day_complete'
+              ? 'bg-cyan-50 text-cyan-600'
+              : metrics.dayState === 'signal_emerging'
+                ? 'bg-amber-50 text-amber-600'
+                : 'bg-stone-100 text-stone-500'
+          }`}>
+            {getDayStateLabel(metrics.dayState, language)}
           </span>
         </div>
         <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
@@ -336,9 +366,9 @@ function ParticipationBar({
           <span className="text-xs text-stone-400">
             {formatParticipationRate(metrics.participation.today, metrics.participation.teamSize)}
           </span>
-          {metrics.participation.rate < 30 && (
-            <span className="text-xs text-amber-500">Limited data</span>
-          )}
+          <span className="text-xs text-stone-400">
+            {metrics.participation.today}/{metrics.participation.teamSize}
+          </span>
         </div>
       </CardContent>
     </Card>

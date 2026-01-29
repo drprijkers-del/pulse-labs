@@ -4,6 +4,9 @@ import type {
   PulseZone,
   PulseMetric,
   DailyPulse,
+  DayState,
+  WeekState,
+  DataMaturity,
 } from './types'
 
 /**
@@ -256,4 +259,152 @@ export function getConfidenceLabel(confidence: ConfidenceLevel, lang: 'nl' | 'en
   }
 
   return labels[lang][confidence]
+}
+
+// =============================================================================
+// DAY & WEEK STATE - Creates tension, rhythm, and closure
+// =============================================================================
+
+/**
+ * Calculate current day state based on participation
+ * Creates sense of "day forming" → "day complete"
+ */
+export function calculateDayState(participationRate: number): DayState {
+  if (participationRate >= 60) return 'day_complete'
+  if (participationRate >= 30) return 'signal_emerging'
+  return 'day_forming'
+}
+
+/**
+ * Get day state label for display
+ */
+export function getDayStateLabel(state: DayState, lang: 'nl' | 'en' = 'en'): string {
+  const labels = {
+    nl: {
+      day_forming: 'Dag start...',
+      signal_emerging: 'Signaal vormt...',
+      day_complete: 'Dag compleet',
+    },
+    en: {
+      day_forming: 'Day forming...',
+      signal_emerging: 'Signal emerging...',
+      day_complete: 'Day complete',
+    },
+  }
+  return labels[lang][state]
+}
+
+/**
+ * Calculate current week state
+ * Creates anticipation through the week
+ */
+export function calculateWeekState(daysWithData: number, isEndOfWeek: boolean): WeekState {
+  if (isEndOfWeek && daysWithData >= 4) return 'week_complete'
+  if (daysWithData >= 3) return 'signal_forming'
+  return 'week_building'
+}
+
+/**
+ * Get week state label for display
+ */
+export function getWeekStateLabel(state: WeekState, lang: 'nl' | 'en' = 'en'): string {
+  const labels = {
+    nl: {
+      week_building: 'Week bouwt op...',
+      signal_forming: 'Patroon vormt...',
+      week_complete: 'Week compleet',
+    },
+    en: {
+      week_building: 'Week building...',
+      signal_forming: 'Pattern forming...',
+      week_complete: 'Week complete',
+    },
+  }
+  return labels[lang][state]
+}
+
+// =============================================================================
+// DATA MATURITY - Progression without badges
+// =============================================================================
+
+/**
+ * Calculate data maturity level
+ * Professional progression model based on measurement history
+ */
+export function calculateDataMaturity(
+  totalDaysWithData: number,
+  consistencyRate: number // % of days with 30%+ participation
+): DataMaturity {
+  // Reliable signal: 30+ days with good consistency
+  if (totalDaysWithData >= 30 && consistencyRate >= 70) {
+    return 'reliable_signal'
+  }
+  // Pattern forming: 14-30 days
+  if (totalDaysWithData >= 14) {
+    return 'pattern_forming'
+  }
+  // Establishing baseline: 7-14 days
+  if (totalDaysWithData >= 7) {
+    return 'establishing_baseline'
+  }
+  // Calibrating: < 7 days
+  return 'calibrating'
+}
+
+/**
+ * Get maturity label for display
+ */
+export function getMaturityLabel(maturity: DataMaturity, lang: 'nl' | 'en' = 'en'): string {
+  const labels = {
+    nl: {
+      calibrating: 'Kalibreren',
+      establishing_baseline: 'Baseline vormen',
+      pattern_forming: 'Patroon vormt',
+      reliable_signal: 'Betrouwbaar signaal',
+    },
+    en: {
+      calibrating: 'Calibrating',
+      establishing_baseline: 'Establishing baseline',
+      pattern_forming: 'Pattern forming',
+      reliable_signal: 'Reliable signal',
+    },
+  }
+  return labels[lang][maturity]
+}
+
+/**
+ * Get maturity description for context
+ */
+export function getMaturityDescription(maturity: DataMaturity, daysOfData: number, lang: 'nl' | 'en' = 'en'): string {
+  const templates = {
+    nl: {
+      calibrating: `Dag ${daysOfData} van 7 — systeem kalibreert`,
+      establishing_baseline: `Dag ${daysOfData} — baseline vormt zich`,
+      pattern_forming: `${daysOfData} dagen data — patronen zichtbaar`,
+      reliable_signal: `${daysOfData} dagen consistente data`,
+    },
+    en: {
+      calibrating: `Day ${daysOfData} of 7 — system calibrating`,
+      establishing_baseline: `Day ${daysOfData} — establishing baseline`,
+      pattern_forming: `${daysOfData} days of data — patterns emerging`,
+      reliable_signal: `${daysOfData} days of consistent data`,
+    },
+  }
+  return templates[lang][maturity]
+}
+
+/**
+ * Get maturity color for styling
+ */
+export function getMaturityColor(maturity: DataMaturity): string {
+  switch (maturity) {
+    case 'calibrating':
+      return 'text-stone-400 bg-stone-100'
+    case 'establishing_baseline':
+      return 'text-amber-600 bg-amber-50'
+    case 'pattern_forming':
+      return 'text-cyan-600 bg-cyan-50'
+    case 'reliable_signal':
+      return 'text-emerald-600 bg-emerald-50'
+  }
 }

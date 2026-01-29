@@ -9,6 +9,9 @@ import {
   calculateConfidence,
   calculateTrend,
   hasMinimumData,
+  calculateDayState,
+  calculateWeekState,
+  calculateDataMaturity,
 } from './calculations'
 
 // =============================================================================
@@ -362,6 +365,26 @@ export async function getTeamMetrics(teamId: string): Promise<TeamMetrics | null
   // Today's participation
   const todayEntries = todayData.reduce((sum, d) => sum + d.count, 0)
   const yesterdayEntries = yesterdayData.reduce((sum, d) => sum + d.count, 0)
+  const participationRate = totalParticipants > 0 ? Math.round((todayEntries / totalParticipants) * 100) : 0
+
+  // Day and week state calculations
+  const dayState = calculateDayState(participationRate)
+
+  // Count unique days with data in this week (Mon-Sun)
+  const uniqueDaysThisWeek = new Set(last7Days.map(d => d.date)).size
+  const dayOfWeek = new Date().getDay() // 0 = Sunday
+  const isEndOfWeek = dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0 // Fri, Sat, Sun
+  const weekState = calculateWeekState(uniqueDaysThisWeek, isEndOfWeek)
+
+  // Data maturity calculation
+  const totalDaysWithData = history.length
+  const daysWithGoodParticipation = history.filter(d =>
+    totalParticipants > 0 && (d.count / totalParticipants) >= 0.3
+  ).length
+  const consistencyRate = totalDaysWithData > 0
+    ? Math.round((daysWithGoodParticipation / totalDaysWithData) * 100)
+    : 0
+  const maturityLevel = calculateDataMaturity(totalDaysWithData, consistencyRate)
 
   return {
     livePulse,
@@ -372,8 +395,15 @@ export async function getTeamMetrics(teamId: string): Promise<TeamMetrics | null
     participation: {
       today: todayEntries,
       teamSize: totalParticipants,
-      rate: totalParticipants > 0 ? Math.round((todayEntries / totalParticipants) * 100) : 0,
+      rate: participationRate,
       trend: calculateTrend(todayEntries - yesterdayEntries),
+    },
+    dayState,
+    weekState,
+    maturity: {
+      level: maturityLevel,
+      daysOfData: totalDaysWithData,
+      consistencyRate,
     },
     lastUpdated: new Date().toISOString(),
     hasEnoughData: hasMinimumData(last7Days.reduce((sum, d) => sum + d.count, 0)),

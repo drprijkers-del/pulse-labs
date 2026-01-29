@@ -9,22 +9,27 @@ import { ShareLinkSection } from '@/components/admin/share-link-section'
 import { TeamStats } from '@/components/admin/team-stats'
 import { TeamSettings } from '@/components/admin/team-settings'
 import { PulseMetrics } from '@/components/admin/pulse-metrics'
+import { Fly, FlyFrequency } from '@/components/ui/fly'
 import { useTranslation, useLanguage } from '@/lib/i18n/context'
 
 interface TeamDetailContentProps {
   team: TeamWithStats
   metrics: TeamMetrics | null
   insights: PulseInsight[]
+  flyFrequency: FlyFrequency
 }
 
-export function TeamDetailContent({ team, metrics, insights }: TeamDetailContentProps) {
+export function TeamDetailContent({ team, metrics, insights, flyFrequency }: TeamDetailContentProps) {
   const t = useTranslation()
   const { language } = useLanguage()
 
   const dateLocale = language === 'nl' ? 'nl-NL' : 'en-US'
 
   return (
-    <div>
+    <div className="relative overflow-hidden">
+      {/* The Fly - responds to team pulse state */}
+      <Fly frequency={flyFrequency} />
+
       <AdminHeader />
 
       <main className="max-w-4xl mx-auto px-4 py-8">
