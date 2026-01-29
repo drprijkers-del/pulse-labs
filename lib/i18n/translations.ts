@@ -77,6 +77,14 @@ export const translations = {
     alreadyMessage: 'Je volgende batch kan morgen.',
     alreadyCheckedToday: 'signalen vandaag',
 
+    // Coaching tips
+    coachingTipTitle: 'Tip van de coach',
+    coachingTipLow: 'Lage score? Bespreek het in de retro of neem je Scrum Master even apart.',
+    coachingTipContext: 'Voeg context toe aan je signaal. Dit helpt je team te begrijpen wat er speelt.',
+    coachingTipRetro: 'Neem dit mee naar de retro. Jouw stem telt.',
+    coachingTipFeedback: 'Heb je iets op je hart? Je Scrum Master staat open voor feedback.',
+    coachingTipAnonymous: 'Je signaal is anoniem, maar je stem mag gehoord worden.',
+
     // Invalid link
     invalidTitle: 'Link niet geldig',
     invalidMessage: 'Deze link is niet geldig of verlopen. Vraag je Scrum Master om een nieuwe link.',
@@ -225,6 +233,14 @@ export const translations = {
     alreadyTitle: 'Already recorded today',
     alreadyMessage: 'Your next batch can be submitted tomorrow.',
     alreadyCheckedToday: 'signals today',
+
+    // Coaching tips
+    coachingTipTitle: 'Coach tip',
+    coachingTipLow: 'Low score? Discuss it in the retro or have a quick chat with your Scrum Master.',
+    coachingTipContext: 'Add context to your signal. It helps your team understand what\'s going on.',
+    coachingTipRetro: 'Bring this to the retro. Your voice matters.',
+    coachingTipFeedback: 'Got something on your mind? Your Scrum Master is open to feedback.',
+    coachingTipAnonymous: 'Your signal is anonymous, but your voice deserves to be heard.',
 
     // Invalid link
     invalidTitle: 'Invalid link',

@@ -161,13 +161,22 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
               className="w-full px-4 py-3 rounded-xl bg-white border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
             />
 
-            <textarea
-              placeholder={t('checkinComment')}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={2}
-              className="w-full px-4 py-3 rounded-xl bg-white border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none"
-            />
+            <div>
+              <textarea
+                placeholder={t('checkinComment')}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={2}
+                className="w-full px-4 py-3 rounded-xl bg-white border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none"
+              />
+              {/* Coaching tip for low scores */}
+              {selectedSignal && selectedSignal <= 2 && (
+                <p className="mt-2 text-xs text-amber-600 flex items-center gap-1">
+                  <span>💬</span>
+                  {t('coachingTipContext')}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Error message */}

@@ -162,7 +162,7 @@ export function CheckinSuccess({ mood, streak, teamStats, teamName }: CheckinSuc
 
           {/* Team stats */}
           {teamStats && teamStats.total_entries > 0 && (
-            <div className="bg-white rounded-2xl p-5 border border-stone-200 mb-8">
+            <div className="bg-white rounded-2xl p-5 border border-stone-200 mb-6">
               <p className="text-xs text-stone-400 uppercase tracking-wide mb-4">{t('successTeamToday')}</p>
               <div className="flex justify-center gap-8">
                 <div className="text-center">
@@ -184,6 +184,21 @@ export function CheckinSuccess({ mood, streak, teamStats, teamName }: CheckinSuc
               </div>
             </div>
           )}
+
+          {/* Coaching tip - contextual based on mood */}
+          <div className={`rounded-xl p-4 mb-6 text-left ${mood <= 2 ? 'bg-amber-50 border border-amber-200' : 'bg-stone-100'}`}>
+            <div className="flex items-start gap-3">
+              <span className="text-lg">{mood <= 2 ? '💬' : '💡'}</span>
+              <div>
+                <p className={`text-xs font-medium mb-1 ${mood <= 2 ? 'text-amber-700' : 'text-stone-500'}`}>
+                  {t('coachingTipTitle')}
+                </p>
+                <p className={`text-sm ${mood <= 2 ? 'text-amber-800' : 'text-stone-600'}`}>
+                  {mood <= 2 ? t('coachingTipLow') : t('coachingTipRetro')}
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* Return message */}
           <p className="text-stone-400 text-sm">
