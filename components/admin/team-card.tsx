@@ -3,12 +3,15 @@
 import Link from 'next/link'
 import { TeamWithStats } from '@/domain/teams/actions'
 import { Card, CardContent } from '@/components/ui/card'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface TeamCardProps {
   team: TeamWithStats
 }
 
 export function TeamCard({ team }: TeamCardProps) {
+  const t = useTranslation()
+
   return (
     <Link href={`/admin/teams/${team.id}`}>
       <Card className="card-hover cursor-pointer">
@@ -25,12 +28,12 @@ export function TeamCard({ team }: TeamCardProps) {
                 <h3 className="font-semibold text-gray-900 truncate">{team.name}</h3>
                 {team.activeLink && (
                   <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full flex-shrink-0 hidden sm:inline">
-                    Actief
+                    {t('adminActive')}
                   </span>
                 )}
               </div>
               <p className="text-sm text-gray-500">
-                {team.participantCount} deelnemers • {team.todayEntries} vandaag
+                {team.participantCount} {t('adminParticipants')} • {team.todayEntries} {t('adminToday')}
               </p>
             </div>
 

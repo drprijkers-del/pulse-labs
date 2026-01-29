@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 import { TeamWithStats, deleteTeam, resetTeam } from '@/domain/teams/actions'
 import { Button } from '@/components/ui/button'
 import { ConfirmModal } from '@/components/ui/modal'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface TeamActionsProps {
   team: TeamWithStats
 }
 
 export function TeamActions({ team }: TeamActionsProps) {
+  const t = useTranslation()
   const router = useRouter()
   const [showResetModal, setShowResetModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -41,10 +43,10 @@ export function TeamActions({ team }: TeamActionsProps) {
     <>
       <div className="flex gap-2">
         <Button variant="secondary" size="sm" onClick={() => setShowResetModal(true)}>
-          Reset data
+          {t('teamReset')}
         </Button>
         <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>
-          Verwijderen
+          {t('teamDeleteButton')}
         </Button>
       </div>
 
@@ -52,9 +54,9 @@ export function TeamActions({ team }: TeamActionsProps) {
         isOpen={showResetModal}
         onClose={() => setShowResetModal(false)}
         onConfirm={handleReset}
-        title="Team resetten"
-        message={`Weet je zeker dat je alle data van "${team.name}" wilt wissen? Alle check-ins en deelnemers worden verwijderd. De share-link blijft werken.`}
-        confirmLabel="Reset team"
+        title={t('teamResetTitle')}
+        message={t('teamResetMessage')}
+        confirmLabel={t('teamResetButton')}
         confirmVariant="danger"
         loading={loading}
       />
@@ -63,9 +65,9 @@ export function TeamActions({ team }: TeamActionsProps) {
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
-        title="Team verwijderen"
-        message={`Weet je zeker dat je "${team.name}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt. De share-link wordt ongeldig.`}
-        confirmLabel="Verwijderen"
+        title={t('teamDeleteTitle')}
+        message={t('teamDeleteMessage')}
+        confirmLabel={t('teamDeleteButton')}
         confirmVariant="danger"
         loading={loading}
       />

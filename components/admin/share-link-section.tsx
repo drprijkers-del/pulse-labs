@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getShareLink, regenerateInviteLink } from '@/domain/teams/actions'
+import { useTranslation } from '@/lib/i18n/context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
@@ -11,6 +12,7 @@ interface ShareLinkSectionProps {
 }
 
 export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
+  const t = useTranslation()
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [regenerating, setRegenerating] = useState(false)
@@ -57,11 +59,11 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
     <>
       <Card>
         <CardHeader>
-          <h2 className="font-semibold text-gray-900">Share link</h2>
+          <h2 className="font-semibold text-gray-900">{t('shareTitle')}</h2>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-500 mb-4">
-            Deel deze link met je team om ze toegang te geven tot de mood check-in.
+            {t('shareDescription')}
           </p>
 
           {loading ? (
@@ -70,7 +72,7 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
             <div className="space-y-3">
               {/* Link display - word wrap on mobile */}
               <div className="px-4 py-3 bg-gray-50 rounded-xl text-sm text-gray-600 font-mono break-all">
-                {shareUrl || 'Geen actieve link'}
+                {shareUrl || t('shareNoLink')}
               </div>
 
               {/* Action buttons - stack on mobile */}
@@ -83,7 +85,7 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
                   <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
-                  Open Mood Meter
+                  {t('shareOpen')}
                 </Button>
                 <Button
                   variant="secondary"
@@ -96,14 +98,14 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
                       <svg className="w-4 h-4 mr-1.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      Gekopieerd!
+                      {t('shareCopied')}
                     </>
                   ) : (
                     <>
                       <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
-                      Kopieer link
+                      {t('shareCopy')}
                     </>
                   )}
                 </Button>
@@ -115,7 +117,7 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
                   <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="text-sm text-green-700">Nieuwe link gegenereerd!</span>
+                  <span className="text-sm text-green-700">{t('shareResetSuccess')}</span>
                 </div>
               )}
             </div>
@@ -135,7 +137,7 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              Geavanceerd
+              {t('shareAdvanced')}
             </button>
 
             {showAdvanced && (
@@ -149,10 +151,9 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-amber-900 mb-1">Link resetten</h4>
+                      <h4 className="text-sm font-medium text-amber-900 mb-1">{t('shareResetTitle')}</h4>
                       <p className="text-xs text-amber-700 leading-relaxed">
-                        Gebruik dit als de link per ongeluk met verkeerde mensen is gedeeld.
-                        De oude link werkt direct niet meer en je krijgt een nieuwe.
+                        {t('shareResetInfo')}
                       </p>
                     </div>
                   </div>
@@ -166,7 +167,7 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
                   <svg className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  Link resetten
+                  {t('shareResetButton')}
                 </button>
               </div>
             )}
@@ -193,10 +194,10 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
             </div>
 
             <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
-              Link resetten?
+              {t('shareResetConfirm')}
             </h3>
             <p className="text-sm text-gray-500 text-center mb-6">
-              De huidige link werkt direct niet meer. Teamleden moeten de nieuwe link gebruiken om in te checken.
+              {t('shareResetWarning')}
             </p>
 
             <div className="flex gap-3">
@@ -204,7 +205,7 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
                 onClick={() => setShowModal(false)}
                 className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
               >
-                Annuleren
+                {t('shareResetCancel')}
               </button>
               <button
                 onClick={handleRegenerate}
@@ -217,10 +218,10 @@ export function ShareLinkSection({ teamId, teamSlug }: ShareLinkSectionProps) {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Bezig...
+                    {t('loading')}
                   </>
                 ) : (
-                  'Ja, reset link'
+                  t('shareResetYes')
                 )}
               </button>
             </div>

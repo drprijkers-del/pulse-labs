@@ -3,31 +3,34 @@
 import { TeamWithStats } from '@/domain/teams/actions'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { getMoodEmoji } from '@/lib/utils'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface TeamStatsProps {
   team: TeamWithStats
 }
 
 export function TeamStats({ team }: TeamStatsProps) {
+  const t = useTranslation()
+
   return (
     <div className="grid grid-cols-2 gap-4">
       <Card>
         <CardContent className="py-6 text-center">
           <div className="text-4xl font-bold gradient-text">{team.participantCount}</div>
-          <div className="text-sm text-gray-500 mt-1">Deelnemers</div>
+          <div className="text-sm text-gray-500 mt-1">{t('statsParticipants')}</div>
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="py-6 text-center">
           <div className="text-4xl font-bold gradient-text">{team.todayEntries}</div>
-          <div className="text-sm text-gray-500 mt-1">Check-ins vandaag</div>
+          <div className="text-sm text-gray-500 mt-1">{t('statsCheckinsToday')}</div>
         </CardContent>
       </Card>
 
       <Card className="col-span-2">
         <CardHeader>
-          <h3 className="font-semibold text-gray-900">Mood schaal</h3>
+          <h3 className="font-semibold text-gray-900">{t('statsMoodScale')}</h3>
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-center">

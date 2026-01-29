@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { AdminHeader } from '@/components/admin/header'
+import { useTranslation } from '@/lib/i18n/context'
 
 export default function NewTeamPage() {
+  const t = useTranslation()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,7 +25,7 @@ export default function NewTeamPage() {
     const result = await createTeam(formData)
 
     if (!result.success) {
-      setError(result.error || 'Er is iets misgegaan')
+      setError(result.error || t('error'))
       setLoading(false)
       return
     }
@@ -44,12 +46,12 @@ export default function NewTeamPage() {
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Terug naar teams
+          {t('adminBack')}
         </Link>
 
         <Card>
           <CardHeader>
-            <h1 className="text-xl font-semibold">Nieuw team aanmaken</h1>
+            <h1 className="text-xl font-semibold">{t('newTeamTitle')}</h1>
           </CardHeader>
           <CardContent>
             {error && (
@@ -62,21 +64,21 @@ export default function NewTeamPage() {
               <Input
                 id="name"
                 name="name"
-                label="Team naam"
-                placeholder="bijv. Marketing Team"
+                label={t('newTeamName')}
+                placeholder={t('newTeamNamePlaceholder')}
                 required
                 minLength={2}
               />
 
               <div className="space-y-1">
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Beschrijving (optioneel)
+                  {t('newTeamDescription')}
                 </label>
                 <textarea
                   id="description"
                   name="description"
                   rows={3}
-                  placeholder="Korte beschrijving van het team..."
+                  placeholder={t('newTeamDescriptionPlaceholder')}
                   className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
@@ -84,11 +86,11 @@ export default function NewTeamPage() {
               <div className="flex gap-3 pt-4">
                 <Link href="/admin/teams" className="flex-1">
                   <Button type="button" variant="secondary" className="w-full">
-                    Annuleren
+                    {t('cancel')}
                   </Button>
                 </Link>
                 <Button type="submit" className="flex-1" loading={loading}>
-                  Team aanmaken
+                  {t('newTeamCreate')}
                 </Button>
               </div>
             </form>

@@ -2,37 +2,41 @@
 
 import { useState } from 'react'
 import { submitMoodCheckin, CheckinResult } from '@/domain/moods/actions'
-import { getMoodEmoji, getMoodLabel, formatDate } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
+import { useTranslation } from '@/lib/i18n/context'
+import { LanguageToggle } from '@/components/ui/language-toggle'
 import { CheckinSuccess } from './checkin-success'
 
 interface TeamCheckinProps {
   teamName: string
 }
 
-const MOOD_CONFIG = [
-  { value: 1, emoji: '😢', label: 'Heel slecht', color: 'from-red-400 to-red-500' },
-  { value: 2, emoji: '😕', label: 'Niet zo goed', color: 'from-orange-400 to-orange-500' },
-  { value: 3, emoji: '😐', label: 'Oké', color: 'from-yellow-400 to-yellow-500' },
-  { value: 4, emoji: '🙂', label: 'Goed', color: 'from-lime-400 to-lime-500' },
-  { value: 5, emoji: '😄', label: 'Geweldig!', color: 'from-green-400 to-green-500' },
-]
-
 export function TeamCheckin({ teamName }: TeamCheckinProps) {
-  const [selectedMood, setSelectedMood] = useState<number | null>(null)
+  const t = useTranslation()
+  const [selectedSignal, setSelectedSignal] = useState<number | null>(null)
   const [nickname, setNickname] = useState('')
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<CheckinResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Signal scale: 1-5 with purity levels (Heisenberg style)
+  const SIGNAL_SCALE = [
+    { value: 1, color: 'bg-cyan-300', label: '50%' },
+    { value: 2, color: 'bg-cyan-400', label: '70%' },
+    { value: 3, color: 'bg-cyan-500', label: '85%' },
+    { value: 4, color: 'bg-cyan-600', label: '96%' },
+    { value: 5, color: 'bg-cyan-700', label: '99.1%' },
+  ]
+
   async function handleSubmit() {
-    if (!selectedMood) return
+    if (!selectedSignal) return
 
     setLoading(true)
     setError(null)
 
     const checkinResult = await submitMoodCheckin(
-      selectedMood,
+      selectedSignal,
       comment || undefined,
       nickname || undefined
     )
@@ -43,7 +47,7 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
       if (checkinResult.alreadyCheckedIn) {
         setResult(checkinResult)
       } else {
-        setError(checkinResult.error || 'Er is iets misgegaan')
+        setError(checkinResult.error || t('error'))
       }
       return
     }
@@ -54,7 +58,7 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
   if (result?.success) {
     return (
       <CheckinSuccess
-        mood={selectedMood!}
+        mood={selectedSignal!}
         streak={result.streak || 1}
         teamStats={result.teamStats}
         teamName={teamName}
@@ -66,35 +70,43 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-stone-50">
         <div className="text-center max-w-md">
-          <div className="text-7xl mb-6">✅</div>
+          <div className="text-5xl mb-6">🧪</div>
           <h1 className="text-2xl font-bold text-stone-900 mb-2">
-            Al ingecheckt!
+            {t('alreadyTitle')}
           </h1>
           <p className="text-stone-500">
-            Je hebt vandaag al een mood check-in gedaan. Kom morgen terug!
+            {t('alreadyMessage')}
           </p>
         </div>
       </div>
     )
   }
 
-  const selectedConfig = selectedMood ? MOOD_CONFIG.find(m => m.value === selectedMood) : null
-
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50">
+    <div className="min-h-screen flex flex-col bg-stone-50 relative overflow-hidden">
+      {/* Easter egg: subtle fly */}
+      <div className="absolute bottom-20 left-10 text-xs opacity-10">
+        🪰
+      </div>
+
       {/* Header */}
-      <header className="p-6">
+      <header className="p-6 relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl">🐔</span>
-            <span className="text-sm text-stone-400">Pink Pollos</span>
+            <span className="text-sm text-stone-400">{t('pinkPollos')}</span>
           </div>
-          <span className="tool-badge">Mood Meter</span>
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+            <span className="inline-flex items-center gap-1 text-xs text-stone-500 border border-stone-200 px-2 py-1 rounded-full">
+              ⚗️ {t('pulse')}
+            </span>
+          </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pb-8 relative z-10">
         <div className="w-full max-w-lg">
           {/* Team & Date */}
           <div className="text-center mb-8">
@@ -103,67 +115,64 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
           </div>
 
           {/* Question */}
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 tracking-tight">
-            Hoe voel je je <span className="gradient-text">vandaag</span>?
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 tracking-tight text-stone-900">
+            {t('checkinQuestion')} {t('checkinToday')}?
           </h2>
 
-          {/* Mood selector - BIGGER BUTTONS */}
-          <div className="flex justify-center gap-3 md:gap-5 mb-8">
-            {MOOD_CONFIG.map((mood) => (
+          {/* Signal selector - cyan/teal like blue meth */}
+          <div className="flex justify-center gap-3 md:gap-4 mb-4">
+            {SIGNAL_SCALE.map((signal) => (
               <button
-                key={mood.value}
-                onClick={() => setSelectedMood(mood.value)}
+                key={signal.value}
+                onClick={() => setSelectedSignal(signal.value)}
                 className={`
-                  mood-button relative
-                  w-16 h-16 md:w-20 md:h-20
-                  rounded-2xl md:rounded-3xl
+                  relative w-14 h-14 md:w-16 md:h-16
+                  rounded-xl
                   flex items-center justify-center
-                  text-4xl md:text-5xl
-                  transition-all duration-300
-                  ${selectedMood === mood.value
-                    ? `selected bg-gradient-to-br ${mood.color} shadow-lg`
-                    : 'bg-stone-100 hover:bg-stone-200'
+                  text-xl md:text-2xl font-bold
+                  transition-all duration-200
+                  ${selectedSignal === signal.value
+                    ? `${signal.color} text-white shadow-lg shadow-cyan-500/30 scale-110`
+                    : 'bg-white border-2 border-stone-200 text-stone-400 hover:border-cyan-300 hover:text-cyan-600'
                   }
                 `}
               >
-                <span className={selectedMood === mood.value ? 'animate-bounce-gentle' : ''}>
-                  {mood.emoji}
-                </span>
+                {signal.value}
               </button>
             ))}
           </div>
 
-          {/* Selected mood label */}
-          {selectedConfig && (
-            <div className="text-center mb-10 animate-fade-in">
-              <p className="text-xl font-semibold text-stone-800">
-                {selectedConfig.label}
-              </p>
-            </div>
-          )}
+          {/* Purity label - Easter egg */}
+          <div className="text-center mb-10 h-5">
+            {selectedSignal && (
+              <span className="text-xs text-cyan-500 font-mono">
+                {SIGNAL_SCALE.find(s => s.value === selectedSignal)?.label} pure
+              </span>
+            )}
+          </div>
 
           {/* Optional fields */}
           <div className="space-y-4 mb-8">
             <input
               type="text"
-              placeholder="Je naam (optioneel)"
+              placeholder={t('checkinName')}
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full px-5 py-4 rounded-2xl bg-white border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-white border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
             />
 
             <textarea
-              placeholder="Wil je er iets over kwijt? (optioneel)"
+              placeholder={t('checkinComment')}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              rows={3}
-              className="w-full px-5 py-4 rounded-2xl bg-white border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none"
+              rows={2}
+              className="w-full px-4 py-3 rounded-xl bg-white border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none"
             />
           </div>
 
           {/* Error message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm text-center">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
               {error}
             </div>
           )}
@@ -171,12 +180,12 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
           {/* Submit button */}
           <button
             onClick={handleSubmit}
-            disabled={!selectedMood || loading}
+            disabled={!selectedSignal || loading}
             className={`
-              w-full py-4 px-6 rounded-full font-semibold text-lg
+              w-full py-4 px-6 rounded-xl font-medium text-lg
               transition-all duration-200
-              ${selectedMood
-                ? 'bg-pink-600 text-white hover:bg-pink-700 shadow-lg shadow-pink-500/25'
+              ${selectedSignal
+                ? 'bg-stone-900 text-white hover:bg-stone-800'
                 : 'bg-stone-200 text-stone-400 cursor-not-allowed'
               }
               disabled:opacity-50
@@ -188,16 +197,19 @@ export function TeamCheckin({ teamName }: TeamCheckinProps) {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Bezig...
+                {t('checkinLoading')}
               </span>
             ) : (
-              'Check-in'
+              t('checkinButton')
             )}
           </button>
 
           {/* Anonymous note */}
-          <p className="text-center text-xs text-stone-400 mt-6">
-            🔒 Je check-in is anoniem
+          <p className="text-center text-xs text-stone-400 mt-6 flex items-center justify-center gap-1">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            {t('checkinAnonymous')}
           </p>
         </div>
       </main>

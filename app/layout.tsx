@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { LanguageProvider } from "@/lib/i18n/context";
 import "./globals.css";
 
 const geist = Geist({
@@ -8,8 +9,8 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Mood Meter | Pink Pollos Lab",
-  description: "Track your team's mood - A Pink Pollos Lab tool",
+  title: "Pulse | Pink Pollos Lab",
+  description: "Team signals in one click - A Pink Pollos Lab tool",
 };
 
 export default function RootLayout({
@@ -18,9 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl">
+    <html lang="nl" suppressHydrationWarning>
       <body className={`${geist.variable} font-sans antialiased bg-stone-50 text-stone-900`}>
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

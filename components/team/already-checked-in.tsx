@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react'
 import { getTeamMoodStats, getParticipantStreak, MoodStats } from '@/domain/moods/actions'
 import { getMoodEmoji } from '@/lib/utils'
+import { useTranslation } from '@/lib/i18n/context'
+import { LanguageToggle } from '@/components/ui/language-toggle'
 
 interface AlreadyCheckedInProps {
   teamName: string
 }
 
 export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
+  const t = useTranslation()
   const [stats, setStats] = useState<MoodStats | null>(null)
   const [streak, setStreak] = useState<number>(0)
 
@@ -38,9 +41,12 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl">🐔</span>
-            <span className="text-sm text-stone-400">Pink Pollos</span>
+            <span className="text-sm text-stone-400">{t('pinkPollos')}</span>
           </div>
-          <span className="tool-badge">Mood Meter</span>
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+            <span className="tool-badge">{t('pulse')}</span>
+          </div>
         </div>
       </header>
 
@@ -50,10 +56,10 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
           {/* Already checked in */}
           <div className="text-7xl mb-6">✅</div>
           <h1 className="text-2xl font-bold text-stone-900 mb-2">
-            Al ingecheckt vandaag!
+            {t('alreadyTitle')}
           </h1>
           <p className="text-stone-500 mb-8">
-            Kom morgen terug voor je volgende check-in.
+            {t('alreadyMessage')}
           </p>
 
           {/* Streak - prominent */}
@@ -76,11 +82,11 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
                 </span>
               </div>
               <p className={`text-sm font-medium ${isGoodStreak ? 'text-white/90' : 'text-stone-500'}`}>
-                {streak === 1 ? 'dag streak' : 'dagen streak!'}
+                {streak === 1 ? t('successStreakSingular') : `${t('successStreak')}!`}
               </p>
               {isGreatStreak && (
                 <p className="text-xs text-white/70 mt-2">
-                  Je bent on fire! 💪
+                  {t('successOnFire')} 💪
                 </p>
               )}
             </div>
@@ -89,7 +95,7 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
           {/* Team stats */}
           {stats && stats.total_entries > 0 && (
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-stone-100">
-              <p className="text-xs text-stone-400 uppercase tracking-wide mb-4">Team vandaag</p>
+              <p className="text-xs text-stone-400 uppercase tracking-wide mb-4">{t('successTeamToday')}</p>
               <div className="flex items-center justify-center gap-4">
                 <span className="text-5xl">{avgMoodEmoji}</span>
                 <div className="text-left">
@@ -97,12 +103,12 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
                     {stats.average_mood.toFixed(1)}
                   </div>
                   <div className="text-sm text-stone-500">
-                    gemiddeld
+                    {t('successAverage')}
                   </div>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-stone-100 text-sm text-stone-500">
-                {stats.total_entries} check-ins vandaag
+                {stats.total_entries} {t('alreadyCheckedToday')}
               </div>
             </div>
           )}
