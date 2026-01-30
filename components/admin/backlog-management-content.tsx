@@ -62,12 +62,6 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
       return
     }
 
-    // Show success with ID for debugging
-    if (!editingBacklog && result.id) {
-      console.log('Created backlog item with ID:', result.id)
-      alert('Item created! ID: ' + result.id)
-    }
-
     setShowBacklogForm(false)
     setEditingBacklog(null)
     router.refresh()
