@@ -381,7 +381,8 @@ export async function createSession(
     return { success: false, error: error.message }
   }
 
-  revalidatePath(`/app/teams/${teamId}`)
+  revalidatePath(`/delta/teams/${teamId}`)
+  revalidatePath(`/teams/${teamId}`)
 
   return { success: true, sessionId: session.id }
 }
@@ -421,7 +422,7 @@ export async function closeSession(
     return { success: false, error: error.message }
   }
 
-  revalidatePath(`/app/delta/${sessionId}`)
+  revalidatePath(`/delta/session/${sessionId}`)
 
   return { success: true }
 }
@@ -459,7 +460,8 @@ export async function deleteSession(sessionId: string): Promise<{ success: boole
     return { success: false, error: error.message }
   }
 
-  revalidatePath(`/app/teams/${session.team_id}`)
+  revalidatePath(`/delta/teams/${session.team_id}`)
+  revalidatePath(`/teams/${session.team_id}`)
 
   return { success: true }
 }
