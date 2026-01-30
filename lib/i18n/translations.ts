@@ -161,8 +161,20 @@ export const translations = {
     statsMoodScale: 'Purity schaal',
 
     // Backlog
-    backlogCTA: 'Backlog & Feedback',
-    backlogCTAMobile: 'Feedback',
+    backlogCTA: 'Backlog',
+    backlogCTAMobile: 'Backlog',
+    wishTitle: 'Deel je idee',
+    wishLabel: 'Wat zou je willen zien?',
+    wishPlaceholder: 'Beschrijf je idee of suggestie...',
+    wishWhyLabel: 'Waarom? (optioneel)',
+    wishWhyPlaceholder: 'Leg uit waarom dit waardevol zou zijn...',
+    wishSubmit: 'Verstuur',
+    wishSubmitting: 'Versturen...',
+    wishRequired: 'Vul je idee in',
+    wishThanks: 'Bedankt!',
+    wishConfirmation: 'Je idee is toegevoegd aan onze review lijst.',
+    wishClose: 'Sluiten',
+    wishAddButton: 'Idee toevoegen',
   },
 
   en: {
@@ -327,8 +339,20 @@ export const translations = {
     statsMoodScale: 'Purity scale',
 
     // Backlog
-    backlogCTA: 'Backlog & Feedback',
-    backlogCTAMobile: 'Feedback',
+    backlogCTA: 'Backlog',
+    backlogCTAMobile: 'Backlog',
+    wishTitle: 'Share your idea',
+    wishLabel: 'What would you like to see?',
+    wishPlaceholder: 'Describe your idea or suggestion...',
+    wishWhyLabel: 'Why? (optional)',
+    wishWhyPlaceholder: 'Explain why this would be valuable...',
+    wishSubmit: 'Submit',
+    wishSubmitting: 'Submitting...',
+    wishRequired: 'Please enter your idea',
+    wishThanks: 'Thank you!',
+    wishConfirmation: 'Your idea has been added to our review list.',
+    wishClose: 'Close',
+    wishAddButton: 'Add idea',
   },
 } as const
 

@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { useTranslation } from '@/lib/i18n/context'
 import type { BacklogItem, ReleaseNote } from '@/domain/backlog/actions'
+import { submitWish } from '@/domain/backlog/actions'
 
 interface BacklogDisplayProps {
   items: BacklogItem[]
@@ -10,14 +13,23 @@ interface BacklogDisplayProps {
 }
 
 type Tab = 'exploring' | 'building' | 'not_doing' | 'releases'
+type WishState = 'browsing' | 'form' | 'submitting' | 'success'
 
 export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
+  const t = useTranslation()
   const [activeTab, setActiveTab] = useState<Tab>('exploring')
+
+  // Wish form state
+  const [wishState, setWishState] = useState<WishState>('browsing')
+  const [wishText, setWishText] = useState('')
+  const [wishWhy, setWishWhy] = useState('')
+  const [wishError, setWishError] = useState('')
 
   // Group items
   const exploring = items.filter(i => i.status === 'exploring')
   const building = items.filter(i => i.status === 'decided' && i.decision === 'building')
   const notDoing = items.filter(i => i.status === 'decided' && i.decision === 'not_doing')
+  const review = items.filter(i => i.status === 'review')
 
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: 'exploring', label: 'Exploring', count: exploring.length },
@@ -25,6 +37,38 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
     { id: 'not_doing', label: 'Not doing', count: notDoing.length },
     { id: 'releases', label: 'Releases', count: releases.length },
   ]
+
+  const handleSubmitWish = async () => {
+    if (!wishText.trim()) {
+      setWishError(t('wishRequired'))
+      return
+    }
+
+    setWishState('submitting')
+
+    const result = await submitWish(wishText.trim(), wishWhy.trim())
+
+    if (!result.success) {
+      setWishError(result.error || 'Something went wrong')
+      setWishState('form')
+      return
+    }
+
+    setWishState('success')
+    setWishText('')
+    setWishWhy('')
+  }
+
+  const handleCancelForm = () => {
+    setWishState('browsing')
+    setWishText('')
+    setWishWhy('')
+    setWishError('')
+  }
+
+  const handleCloseSuccess = () => {
+    setWishState('browsing')
+  }
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
@@ -161,6 +205,117 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
 
   return (
     <div>
+      {/* Wish submission section */}
+      {wishState === 'browsing' && (
+        <Card className="mb-8 border-cyan-200 bg-cyan-50/50">
+          <CardContent className="py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="font-bold text-stone-900">{t('wishTitle')}</h2>
+                <p className="text-sm text-stone-600 mt-1">
+                  Have an idea or suggestion? We&apos;d love to hear it!
+                </p>
+              </div>
+              <Button onClick={() => setWishState('form')}>
+                {t('wishAddButton')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Wish form */}
+      {(wishState === 'form' || wishState === 'submitting') && (
+        <Card className="mb-8 border-cyan-200">
+          <CardContent className="py-6">
+            <h2 className="text-lg font-bold text-stone-900 mb-4">{t('wishTitle')}</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="wish-text" className="block text-sm font-medium text-stone-700 mb-1">
+                  {t('wishLabel')}
+                </label>
+                <textarea
+                  id="wish-text"
+                  value={wishText}
+                  onChange={(e) => {
+                    setWishText(e.target.value)
+                    setWishError('')
+                  }}
+                  placeholder={t('wishPlaceholder')}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-lg text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
+                  rows={3}
+                  disabled={wishState === 'submitting'}
+                />
+                {wishError && (
+                  <p className="text-sm text-red-600 mt-1">{wishError}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="wish-why" className="block text-sm font-medium text-stone-700 mb-1">
+                  {t('wishWhyLabel')}
+                </label>
+                <textarea
+                  id="wish-why"
+                  value={wishWhy}
+                  onChange={(e) => setWishWhy(e.target.value)}
+                  placeholder={t('wishWhyPlaceholder')}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-lg text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
+                  rows={2}
+                  disabled={wishState === 'submitting'}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  onClick={handleSubmitWish}
+                  disabled={wishState === 'submitting'}
+                  className="flex-1"
+                >
+                  {wishState === 'submitting' ? t('wishSubmitting') : t('wishSubmit')}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleCancelForm}
+                  disabled={wishState === 'submitting'}
+                >
+                  {t('cancel')}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Success message */}
+      {wishState === 'success' && (
+        <Card className="mb-8 border-green-200 bg-green-50">
+          <CardContent className="py-6 text-center">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-green-100 flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-stone-900 mb-2">{t('wishThanks')}</h2>
+            <p className="text-sm text-stone-600 mb-4">{t('wishConfirmation')}</p>
+            <Button variant="secondary" onClick={handleCloseSuccess}>
+              {t('wishClose')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Under review section (if there are items) */}
+      {review.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-sm font-medium text-stone-500 uppercase tracking-wide mb-3">
+            Under review ({review.length})
+          </h3>
+          {renderItems(review)}
+        </div>
+      )}
+
       {/* Tab navigation */}
       <div className="flex gap-1 p-1 bg-stone-100 rounded-xl mb-6">
         {tabs.map((tab) => (
