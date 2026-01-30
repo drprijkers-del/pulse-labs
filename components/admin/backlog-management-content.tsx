@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import {
   BacklogItem,
   ReleaseNote,
-  ProductType,
   BacklogCategory,
   BacklogStatus,
   BacklogDecision,
@@ -110,19 +109,6 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
     router.refresh()
   }
 
-  function getProductBadge(product: ProductType) {
-    const colors = {
-      delta: 'bg-cyan-100 text-cyan-700',
-      pulse: 'bg-purple-100 text-purple-700',
-      shared: 'bg-stone-100 text-stone-700',
-    }
-    return (
-      <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[product]}`}>
-        {product}
-      </span>
-    )
-  }
-
   function getCategoryLabel(category: BacklogCategory) {
     const labels: Record<BacklogCategory, string> = {
       ux: 'UX',
@@ -132,6 +118,21 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
       features: 'Features',
     }
     return labels[category]
+  }
+
+  function getCategoryBadge(category: BacklogCategory) {
+    const colors: Record<BacklogCategory, string> = {
+      ux: 'bg-purple-100 text-purple-700',
+      statements: 'bg-blue-100 text-blue-700',
+      analytics: 'bg-cyan-100 text-cyan-700',
+      integration: 'bg-amber-100 text-amber-700',
+      features: 'bg-emerald-100 text-emerald-700',
+    }
+    return (
+      <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[category]}`}>
+        {getCategoryLabel(category)}
+      </span>
+    )
   }
 
   function getStatusBadge(status: BacklogStatus, decision?: BacklogDecision | null) {
@@ -164,6 +165,13 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
             </Link>
             <span className="font-bold text-lg">Backlog & Release Notes</span>
           </div>
+          <Link
+            href="/feedback/backlog"
+            target="_blank"
+            className="text-sm text-cyan-400 hover:text-cyan-300"
+          >
+            View public page
+          </Link>
         </div>
       </header>
 
@@ -211,19 +219,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
                   {editingBacklog ? 'Edit item' : 'New backlog item'}
                 </h2>
                 <form onSubmit={handleBacklogSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-stone-300 mb-1">Product</label>
-                      <select
-                        name="product"
-                        defaultValue={editingBacklog?.product || 'delta'}
-                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-                      >
-                        <option value="delta">Delta</option>
-                        <option value="pulse">Pulse</option>
-                        <option value="shared">Shared</option>
-                      </select>
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-stone-300 mb-1">Category</label>
                       <select
@@ -272,7 +268,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
                       <input
                         type="date"
                         name="reviewed_at"
-                        defaultValue={editingBacklog?.reviewed_at || new Date().toISOString().split('T')[0]}
+                        defaultValue={editingBacklog?.reviewed_at?.split('T')[0] || new Date().toISOString().split('T')[0]}
                         className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
                       />
                     </div>
@@ -291,29 +287,26 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
 
                   <div>
                     <label className="block text-sm font-medium text-stone-300 mb-1">Source</label>
-                    <p className="text-xs text-stone-500 mb-2">Where did this request come from? (e.g., user feedback, internal idea, customer interview)</p>
+                    <p className="text-xs text-stone-500 mb-2">Where did this request come from?</p>
                     <input
                       name="source_en"
                       defaultValue={editingBacklog?.source_en || ''}
-                      required
-                      placeholder="e.g., User feedback via backlog page"
+                      placeholder="e.g., User feedback, internal idea, customer interview"
                       className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
                     />
                   </div>
 
-                  {formStatus === 'decided' && (
-                    <div>
-                      <label className="block text-sm font-medium text-stone-300 mb-1">Our take</label>
-                      <p className="text-xs text-stone-500 mb-2">Explain the decision - why are we building or not building this?</p>
-                      <textarea
-                        name="our_take_en"
-                        rows={3}
-                        defaultValue={editingBacklog?.our_take_en || ''}
-                        placeholder="Explain the reasoning behind this decision..."
-                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
-                      />
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-stone-300 mb-1">Our take</label>
+                    <p className="text-xs text-stone-500 mb-2">What&apos;s our perspective on this?</p>
+                    <textarea
+                      name="our_take_en"
+                      rows={3}
+                      defaultValue={editingBacklog?.our_take_en || ''}
+                      placeholder="Explain the reasoning..."
+                      className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
+                    />
+                  </div>
 
                   <div className="flex gap-2 justify-end">
                     <button
@@ -355,12 +348,16 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap mb-1">
-                                {getProductBadge(item.product)}
-                                <span className="text-xs text-stone-400">{getCategoryLabel(item.category)}</span>
+                                {getCategoryBadge(item.category)}
                                 {getStatusBadge(item.status, item.decision)}
                               </div>
                               <p className="font-medium text-white">{item.title_en}</p>
-                              <p className="text-sm text-stone-400 mt-1 line-clamp-2">{item.our_take_en}</p>
+                              {item.source_en && (
+                                <p className="text-xs text-stone-500 mt-1">Source: {item.source_en}</p>
+                              )}
+                              {item.our_take_en && (
+                                <p className="text-sm text-stone-400 mt-1 line-clamp-2">{item.our_take_en}</p>
+                              )}
                             </div>
                             <div className="flex gap-1 flex-shrink-0">
                               <button
@@ -430,14 +427,20 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          {getProductBadge(note.product)}
-                          <span className="text-xs font-mono text-stone-400">v{note.version}</span>
+                          <span className="text-xs font-mono text-cyan-400">v{note.version}</span>
                           <span className="text-xs text-stone-500">
                             {new Date(note.released_at).toLocaleDateString('en-US')}
                           </span>
                         </div>
                         <p className="font-medium text-white">{note.title_en}</p>
-                        <p className="text-sm text-stone-400 mt-1 line-clamp-2">{note.description_en}</p>
+                        {note.description_en && (
+                          <p className="text-sm text-stone-400 mt-1 line-clamp-2">{note.description_en}</p>
+                        )}
+                        {note.changes && note.changes.length > 0 && (
+                          <div className="mt-2 text-xs text-stone-500">
+                            {note.changes.length} change{note.changes.length !== 1 ? 's' : ''}
+                          </div>
+                        )}
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
                         <button
@@ -515,34 +518,32 @@ function ReleaseNoteForm({ editingRelease, loading, onSubmit, onCancel }: Releas
     setChanges(changes.filter((_, i) => i !== index))
   }
 
-  function updateChange(index: number, lang: 'nl' | 'en', value: string) {
+  function updateChange(index: number, value: string) {
     const updated = [...changes]
-    updated[index][lang] = value
+    // Store same value for both NL and EN (English only for simplicity)
+    updated[index] = { nl: value, en: value }
     setChanges(updated)
   }
 
   function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    formData.set('changes', JSON.stringify(changes.filter(c => c.nl || c.en)))
-    onSubmit({ ...e, currentTarget: { ...e.currentTarget, elements: e.currentTarget.elements } } as React.FormEvent<HTMLFormElement>)
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    formData.set('changes', JSON.stringify(changes.filter(c => c.en)))
+
+    // Create a synthetic event with the modified formData
+    const syntheticEvent = {
+      ...e,
+      currentTarget: form,
+      preventDefault: () => {},
+    } as React.FormEvent<HTMLFormElement>
+
+    onSubmit(syntheticEvent)
   }
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Product</label>
-          <select
-            name="product"
-            defaultValue={editingRelease?.product || 'delta'}
-            className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-          >
-            <option value="delta">Delta</option>
-            <option value="pulse">Pulse</option>
-            <option value="shared">Shared</option>
-          </select>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-stone-300 mb-1">Version</label>
           <input
@@ -558,75 +559,45 @@ function ReleaseNoteForm({ editingRelease, loading, onSubmit, onCancel }: Releas
           <input
             type="date"
             name="released_at"
-            defaultValue={editingRelease?.released_at || new Date().toISOString().split('T')[0]}
-            className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Titel (NL)</label>
-          <input
-            name="title_nl"
-            defaultValue={editingRelease?.title_nl || ''}
-            required
-            className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Title (EN)</label>
-          <input
-            name="title_en"
-            defaultValue={editingRelease?.title_en || ''}
-            required
-            className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Beschrijving (NL)</label>
-          <textarea
-            name="description_nl"
-            rows={2}
-            defaultValue={editingRelease?.description_nl || ''}
-            required
-            className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Description (EN)</label>
-          <textarea
-            name="description_en"
-            rows={2}
-            defaultValue={editingRelease?.description_en || ''}
-            required
+            defaultValue={editingRelease?.released_at?.split('T')[0] || new Date().toISOString().split('T')[0]}
             className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
           />
         </div>
       </div>
 
       <div>
+        <label className="block text-sm font-medium text-stone-300 mb-1">Title</label>
+        <input
+          name="title_en"
+          defaultValue={editingRelease?.title_en || ''}
+          required
+          placeholder="What's in this release?"
+          className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-stone-300 mb-1">Description</label>
+        <textarea
+          name="description_en"
+          rows={2}
+          defaultValue={editingRelease?.description_en || ''}
+          placeholder="Brief summary of changes..."
+          className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
+        />
+      </div>
+
+      <div>
         <label className="block text-sm font-medium text-stone-300 mb-2">Changes</label>
         <div className="space-y-2">
           {changes.map((change, index) => (
-            <div key={index} className="flex gap-2 items-start">
-              <div className="flex-1 grid grid-cols-2 gap-2">
-                <input
-                  value={change.nl}
-                  onChange={(e) => updateChange(index, 'nl', e.target.value)}
-                  placeholder="NL"
-                  className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white text-sm"
-                />
-                <input
-                  value={change.en}
-                  onChange={(e) => updateChange(index, 'en', e.target.value)}
-                  placeholder="EN"
-                  className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white text-sm"
-                />
-              </div>
+            <div key={index} className="flex gap-2 items-center">
+              <input
+                value={change.en}
+                onChange={(e) => updateChange(index, e.target.value)}
+                placeholder="What changed?"
+                className="flex-1 px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white text-sm placeholder:text-stone-500"
+              />
               <button
                 type="button"
                 onClick={() => removeChange(index)}

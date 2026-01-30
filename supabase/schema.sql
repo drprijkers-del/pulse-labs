@@ -521,3 +521,94 @@ VALUES (
 ON CONFLICT (email) DO UPDATE SET
   role = 'super_admin',
   password_hash = '$2b$10$KIfUG2PHs0YrEDyWsHUN1O2OVVfdRxjMCBdpuetuvkAAlGewbikcC';
+
+-- ============================================
+-- BACKLOG & RELEASE NOTES
+-- ============================================
+
+-- Backlog items table
+CREATE TABLE IF NOT EXISTS backlog_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  -- Categorization
+  category TEXT NOT NULL DEFAULT 'features' CHECK (category IN ('ux', 'statements', 'analytics', 'integration', 'features')),
+  status TEXT NOT NULL DEFAULT 'review' CHECK (status IN ('review', 'exploring', 'decided')),
+  decision TEXT CHECK (decision IN ('building', 'not_doing')),
+  -- Multilingual content
+  title_nl TEXT NOT NULL,
+  title_en TEXT NOT NULL,
+  source_nl TEXT,
+  source_en TEXT,
+  our_take_nl TEXT,
+  our_take_en TEXT,
+  rationale_nl TEXT,
+  rationale_en TEXT,
+  -- Timestamps
+  reviewed_at TIMESTAMPTZ,
+  decided_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  -- Constraint: decision required when decided
+  CONSTRAINT decision_required_when_decided CHECK (
+    (status != 'decided') OR (status = 'decided' AND decision IS NOT NULL)
+  )
+);
+
+-- Release notes table
+CREATE TABLE IF NOT EXISTS release_notes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  version TEXT NOT NULL,
+  -- Multilingual content
+  title_nl TEXT NOT NULL,
+  title_en TEXT NOT NULL,
+  description_nl TEXT,
+  description_en TEXT,
+  changes JSONB DEFAULT '[]'::JSONB, -- Array of {nl, en} objects
+  -- Timestamps
+  released_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_backlog_items_status ON backlog_items(status);
+CREATE INDEX IF NOT EXISTS idx_backlog_items_category ON backlog_items(category);
+CREATE INDEX IF NOT EXISTS idx_release_notes_released_at ON release_notes(released_at DESC);
+
+-- Enable RLS
+ALTER TABLE backlog_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE release_notes ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for backlog_items
+CREATE POLICY "Public can read backlog_items"
+  ON backlog_items FOR SELECT
+  TO anon, authenticated
+  USING (TRUE);
+
+CREATE POLICY "Super admin can manage backlog_items"
+  ON backlog_items FOR ALL
+  TO authenticated
+  USING (is_super_admin())
+  WITH CHECK (is_super_admin());
+
+-- RLS Policies for release_notes
+CREATE POLICY "Public can read release_notes"
+  ON release_notes FOR SELECT
+  TO anon, authenticated
+  USING (TRUE);
+
+CREATE POLICY "Super admin can manage release_notes"
+  ON release_notes FOR ALL
+  TO authenticated
+  USING (is_super_admin())
+  WITH CHECK (is_super_admin());
+
+-- Triggers for updated_at
+CREATE TRIGGER backlog_items_updated_at
+  BEFORE UPDATE ON backlog_items
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER release_notes_updated_at
+  BEFORE UPDATE ON release_notes
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();

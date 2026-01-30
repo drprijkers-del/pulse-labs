@@ -4,26 +4,24 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 // Types matching database schema
-export type ProductType = 'delta' | 'pulse' | 'shared'
 export type BacklogCategory = 'ux' | 'statements' | 'analytics' | 'integration' | 'features'
 export type BacklogStatus = 'review' | 'exploring' | 'decided'
 export type BacklogDecision = 'building' | 'not_doing'
 
 export interface BacklogItem {
   id: string
-  product: ProductType
   category: BacklogCategory
   status: BacklogStatus
   decision: BacklogDecision | null
   title_nl: string
   title_en: string
-  source_nl: string
-  source_en: string
-  our_take_nl: string
-  our_take_en: string
+  source_nl: string | null
+  source_en: string | null
+  our_take_nl: string | null
+  our_take_en: string | null
   rationale_nl: string | null
   rationale_en: string | null
-  reviewed_at: string
+  reviewed_at: string | null
   decided_at: string | null
   created_at: string
   updated_at: string
@@ -31,12 +29,11 @@ export interface BacklogItem {
 
 export interface ReleaseNote {
   id: string
-  product: ProductType
   version: string
   title_nl: string
   title_en: string
-  description_nl: string
-  description_en: string
+  description_nl: string | null
+  description_en: string | null
   changes: { nl: string; en: string }[]
   released_at: string
   created_at: string
@@ -48,23 +45,16 @@ export interface ReleaseNote {
 // ============================================================================
 
 /**
- * Get all backlog items, optionally filtered by product
+ * Get all backlog items
  */
-export async function getBacklogItems(product?: ProductType): Promise<BacklogItem[]> {
+export async function getBacklogItems(): Promise<BacklogItem[]> {
   const supabase = await createClient()
 
-  let query = supabase
+  const { data, error } = await supabase
     .from('backlog_items')
     .select('*')
     .order('status', { ascending: true })
-    .order('reviewed_at', { ascending: false })
-
-  if (product) {
-    // Show items for this product OR shared items
-    query = query.or(`product.eq.${product},product.eq.shared`)
-  }
-
-  const { data, error } = await query
+    .order('reviewed_at', { ascending: false, nullsFirst: false })
 
   if (error) {
     console.error('Error fetching backlog items:', error)
@@ -102,15 +92,14 @@ export async function createBacklogItem(formData: FormData): Promise<{ success: 
 
   const status = formData.get('status') as BacklogStatus
   const titleEn = formData.get('title_en') as string
-  const sourceEn = formData.get('source_en') as string
-  const ourTakeEn = (formData.get('our_take_en') as string) || 'To be reviewed'
+  const sourceEn = formData.get('source_en') as string | null
+  const ourTakeEn = formData.get('our_take_en') as string | null
 
   const item = {
-    product: formData.get('product') as ProductType,
     category: formData.get('category') as BacklogCategory,
     status,
     decision: status === 'decided' ? (formData.get('decision') as BacklogDecision) : null,
-    title_nl: titleEn,
+    title_nl: titleEn, // English only for simplicity
     title_en: titleEn,
     source_nl: sourceEn,
     source_en: sourceEn,
@@ -144,11 +133,10 @@ export async function updateBacklogItem(id: string, formData: FormData): Promise
 
   const status = formData.get('status') as BacklogStatus
   const titleEn = formData.get('title_en') as string
-  const sourceEn = formData.get('source_en') as string
-  const ourTakeEn = (formData.get('our_take_en') as string) || 'To be reviewed'
+  const sourceEn = formData.get('source_en') as string | null
+  const ourTakeEn = formData.get('our_take_en') as string | null
 
   const updates = {
-    product: formData.get('product') as ProductType,
     category: formData.get('category') as BacklogCategory,
     status,
     decision: status === 'decided' ? (formData.get('decision') as BacklogDecision) : null,
@@ -160,6 +148,7 @@ export async function updateBacklogItem(id: string, formData: FormData): Promise
     our_take_en: ourTakeEn,
     reviewed_at: formData.get('reviewed_at') as string,
     decided_at: status === 'decided' ? new Date().toISOString().split('T')[0] : null,
+    updated_at: new Date().toISOString(),
   }
 
   const { error } = await supabase
@@ -203,21 +192,15 @@ export async function deleteBacklogItem(id: string): Promise<{ success: boolean;
 // ============================================================================
 
 /**
- * Get all release notes, optionally filtered by product
+ * Get all release notes
  */
-export async function getReleaseNotes(product?: ProductType): Promise<ReleaseNote[]> {
+export async function getReleaseNotes(): Promise<ReleaseNote[]> {
   const supabase = await createClient()
 
-  let query = supabase
+  const { data, error } = await supabase
     .from('release_notes')
     .select('*')
     .order('released_at', { ascending: false })
-
-  if (product) {
-    query = query.or(`product.eq.${product},product.eq.shared`)
-  }
-
-  const { data, error } = await query
 
   if (error) {
     console.error('Error fetching release notes:', error)
@@ -265,11 +248,10 @@ export async function createReleaseNote(formData: FormData): Promise<{ success: 
   }
 
   const note = {
-    product: formData.get('product') as ProductType,
     version: formData.get('version') as string,
-    title_nl: formData.get('title_nl') as string,
+    title_nl: formData.get('title_en') as string, // English only
     title_en: formData.get('title_en') as string,
-    description_nl: formData.get('description_nl') as string,
+    description_nl: formData.get('description_en') as string,
     description_en: formData.get('description_en') as string,
     changes,
     released_at: formData.get('released_at') as string || new Date().toISOString().split('T')[0],
@@ -308,14 +290,14 @@ export async function updateReleaseNote(id: string, formData: FormData): Promise
   }
 
   const updates = {
-    product: formData.get('product') as ProductType,
     version: formData.get('version') as string,
-    title_nl: formData.get('title_nl') as string,
+    title_nl: formData.get('title_en') as string,
     title_en: formData.get('title_en') as string,
-    description_nl: formData.get('description_nl') as string,
+    description_nl: formData.get('description_en') as string,
     description_en: formData.get('description_en') as string,
     changes,
     released_at: formData.get('released_at') as string,
+    updated_at: new Date().toISOString(),
   }
 
   const { error } = await supabase
