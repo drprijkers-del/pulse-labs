@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 // Types matching database schema
@@ -98,7 +98,7 @@ export async function getBacklogItem(id: string): Promise<BacklogItem | null> {
  * Create a new backlog item (Super Admin only)
  */
 export async function createBacklogItem(formData: FormData): Promise<{ success: boolean; error?: string; id?: string }> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const item = {
     product: formData.get('product') as ProductType,
@@ -137,7 +137,7 @@ export async function createBacklogItem(formData: FormData): Promise<{ success: 
  * Update a backlog item (Super Admin only)
  */
 export async function updateBacklogItem(id: string, formData: FormData): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const status = formData.get('status') as BacklogStatus
   const decision = status === 'decided' ? (formData.get('decision') as BacklogDecision) : null
@@ -179,7 +179,7 @@ export async function updateBacklogItem(id: string, formData: FormData): Promise
  * Delete a backlog item (Super Admin only)
  */
 export async function deleteBacklogItem(id: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { error } = await supabase
     .from('backlog_items')
@@ -249,7 +249,7 @@ export async function getReleaseNote(id: string): Promise<ReleaseNote | null> {
  * Create a new release note (Super Admin only)
  */
 export async function createReleaseNote(formData: FormData): Promise<{ success: boolean; error?: string; id?: string }> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   // Parse changes from form (JSON string of array)
   let changes: { nl: string; en: string }[] = []
@@ -293,7 +293,7 @@ export async function createReleaseNote(formData: FormData): Promise<{ success: 
  * Update a release note (Super Admin only)
  */
 export async function updateReleaseNote(id: string, formData: FormData): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   let changes: { nl: string; en: string }[] = []
   const changesJson = formData.get('changes') as string
@@ -335,7 +335,7 @@ export async function updateReleaseNote(id: string, formData: FormData): Promise
  * Delete a release note (Super Admin only)
  */
 export async function deleteReleaseNote(id: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { error } = await supabase
     .from('release_notes')
