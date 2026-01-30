@@ -53,13 +53,13 @@ export function HomeContent() {
       {/* Header */}
       <header className="p-6 flex justify-between items-center relative z-10">
         <div className="flex items-center gap-2">
-          <span className="text-xl">⚗️</span>
-          <span className="text-sm font-medium text-stone-400">{t('pulse')}</span>
+          <span className="text-2xl font-bold text-purple-600">P</span>
+          <span className="text-sm font-medium text-stone-500">{t('pulse')}</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Link
             href="/admin/login"
-            className="text-xs text-stone-400 hover:text-cyan-600 transition-colors"
+            className="text-sm text-stone-500 hover:text-stone-900 transition-colors py-2 px-3 rounded-lg hover:bg-stone-100 active:bg-stone-200 min-h-11 flex items-center"
           >
             {t('homeAdminLogin')}
           </Link>
@@ -149,12 +149,12 @@ export function HomeContent() {
                   placeholder={t('loginEmailPlaceholder')}
                   required
                   autoFocus
-                  className="flex-1 px-4 py-3 rounded-xl border border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
+                  className="flex-1 px-4 py-3 min-h-12 rounded-xl border border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 />
                 <button
                   type="submit"
                   disabled={loading || !email}
-                  className="px-6 py-3 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-colors disabled:opacity-50 font-medium"
+                  className="px-6 py-3 min-h-12 bg-cyan-500 text-white rounded-xl hover:bg-cyan-600 active:bg-cyan-700 transition-colors disabled:opacity-50 font-medium"
                 >
                   {loading ? (
                     <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -183,10 +183,10 @@ export function HomeContent() {
             <div className="space-y-4 mb-6">
               <button
                 onClick={() => setShowLogin(true)}
-                className="inline-flex flex-col items-center gap-1 px-8 py-4 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-colors"
+                className="inline-flex flex-col items-center gap-1 px-8 py-4 min-h-12 bg-cyan-500 text-white rounded-xl hover:bg-cyan-600 active:bg-cyan-700 transition-colors"
               >
                 <span className="font-medium">{t('homeScrumMasterCTA')}</span>
-                <span className="text-xs text-stone-400">{t('homeScrumMasterSubtext')}</span>
+                <span className="text-xs text-cyan-200">{t('homeScrumMasterSubtext')}</span>
               </button>
 
               <div className="text-xs text-stone-400">
@@ -205,7 +205,7 @@ export function HomeContent() {
       </main>
 
       {/* Footer */}
-      <footer className="p-6 text-center relative z-10">
+      <footer className="pt-6 pb-24 text-center relative z-10">
         <p className="text-xs text-stone-400">
           <a
             href="https://pinkpollos.nl"
