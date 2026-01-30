@@ -46,10 +46,11 @@ export async function getTeams(): Promise<TeamWithStats[]> {
   const adminUser = await requireAdmin()
   const supabase = await createClient()
 
-  // Build query - filter by owner unless super admin
+  // Build query - only show Pulse teams, filter by owner unless super admin
   let query = supabase
     .from('teams')
     .select('*')
+    .eq('app_type', 'pulse')
     .order('created_at', { ascending: false })
 
   // If not super_admin, filter by owner_id
@@ -105,6 +106,7 @@ export async function getTeam(id: string): Promise<TeamWithStats | null> {
     .from('teams')
     .select('*')
     .eq('id', id)
+    .eq('app_type', 'pulse')
     .single()
 
   if (error || !team) return null
