@@ -48,13 +48,20 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
     setLoading(true)
     const formData = new FormData(e.currentTarget)
 
+    let result
     if (editingBacklog) {
-      await updateBacklogItem(editingBacklog.id, formData)
+      result = await updateBacklogItem(editingBacklog.id, formData)
     } else {
-      await createBacklogItem(formData)
+      result = await createBacklogItem(formData)
     }
 
     setLoading(false)
+
+    if (!result.success) {
+      alert('Error: ' + (result.error || 'Unknown error'))
+      return
+    }
+
     setShowBacklogForm(false)
     setEditingBacklog(null)
     router.refresh()
@@ -65,13 +72,20 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
     setLoading(true)
     const formData = new FormData(e.currentTarget)
 
+    let result
     if (editingRelease) {
-      await updateReleaseNote(editingRelease.id, formData)
+      result = await updateReleaseNote(editingRelease.id, formData)
     } else {
-      await createReleaseNote(formData)
+      result = await createReleaseNote(formData)
     }
 
     setLoading(false)
+
+    if (!result.success) {
+      alert('Error: ' + (result.error || 'Unknown error'))
+      return
+    }
+
     setShowReleaseForm(false)
     setEditingRelease(null)
     router.refresh()
