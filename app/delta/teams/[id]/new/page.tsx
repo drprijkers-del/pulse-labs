@@ -7,6 +7,7 @@ import { createSession } from '@/domain/delta/actions'
 import { ANGLES, DeltaAngle } from '@/domain/delta/types'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/lib/i18n/context'
+import { AdminHeader } from '@/components/admin/header'
 
 export default function NewDeltaSessionPage() {
   const router = useRouter()
@@ -67,8 +68,10 @@ export default function NewDeltaSessionPage() {
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
-      {/* Back link */}
+    <>
+      <AdminHeader />
+      <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
+        {/* Back link */}
       <Link
         href={`/delta/teams/${teamId}`}
         className="inline-flex items-center text-stone-500 hover:text-stone-700 mb-6 min-h-11 py-2"
@@ -136,6 +139,7 @@ export default function NewDeltaSessionPage() {
           {t('startSession')}
         </Button>
       </div>
-    </main>
+      </main>
+    </>
   )
 }

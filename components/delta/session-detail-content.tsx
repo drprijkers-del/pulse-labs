@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { useTranslation, TranslationFunction } from '@/lib/i18n/context'
+import { AdminHeader } from '@/components/admin/header'
 
 interface SessionDetailContentProps {
   session: DeltaSessionWithStats
@@ -69,16 +70,18 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
     setDeleting(true)
     const result = await deleteSession(session.id)
     if (result.success) {
-      router.push(`/app/teams/${session.team_id}`)
+      router.push(`/delta/teams/${session.team_id}`)
     }
     setDeleting(false)
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 pt-8 pb-24">
-      {/* Back link */}
-      <Link
-        href={`/app/teams/${session.team_id}`}
+    <>
+      <AdminHeader />
+      <main className="max-w-3xl mx-auto px-4 pt-8 pb-24">
+        {/* Back link */}
+        <Link
+          href={`/delta/teams/${session.team_id}`}
         className="inline-flex items-center text-stone-500 hover:text-stone-700 mb-6"
       >
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,7 +347,8 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
           </Button>
         </div>
       </Modal>
-    </main>
+      </main>
+    </>
   )
 }
 

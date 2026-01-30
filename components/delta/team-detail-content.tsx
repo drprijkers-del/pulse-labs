@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ConfirmModal } from '@/components/ui/modal'
 import { useTranslation, useLanguage, TranslationFunction } from '@/lib/i18n/context'
+import { AdminHeader } from '@/components/admin/header'
 
 interface TeamDetailContentProps {
   team: TeamWithStats
@@ -139,15 +140,17 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
     const result = await deleteTeam(team.id)
     setLoading(false)
     if (result.success) {
-      router.push('/app/teams')
+      router.push('/delta/teams')
     }
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 pt-8 pb-24">
-      {/* Back link */}
-      <Link
-        href="/app/teams"
+    <>
+      <AdminHeader />
+      <main className="max-w-4xl mx-auto px-4 pt-8 pb-24">
+        {/* Back link */}
+        <Link
+          href="/delta/teams"
         className="inline-flex items-center text-stone-500 hover:text-stone-700 mb-6 min-h-11 py-2"
       >
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -398,7 +401,7 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
               <h2 className="text-lg font-semibold text-stone-900">{t('startDeltaSession')}</h2>
               <p className="text-sm text-stone-600">{t('startDeltaSessionSubtitle')}</p>
             </div>
-            <Link href={`/app/teams/${team.id}/delta/new`}>
+            <Link href={`/delta/teams/${team.id}/new`}>
               <Button>
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -495,7 +498,8 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
         confirmVariant="danger"
         loading={loading}
       />
-    </main>
+      </main>
+    </>
   )
 }
 
@@ -560,7 +564,7 @@ function SessionCard({ session, t }: { session: DeltaSessionWithStats; t: Transl
   }
 
   return (
-    <Link href={`/app/delta/${session.id}`}>
+    <Link href={`/delta/session/${session.id}`}>
       <Card className="card-hover cursor-pointer">
         <CardContent className="py-4">
           <div className="flex items-center gap-4">
