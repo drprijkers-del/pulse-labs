@@ -62,6 +62,9 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
       return
     }
 
+    // Debug: show result
+    alert('Result: ' + JSON.stringify(result))
+
     setShowBacklogForm(false)
     setEditingBacklog(null)
     router.refresh()
