@@ -40,8 +40,8 @@ export function AdminHeader() {
                 <span className="font-bold text-lg text-stone-900 dark:text-stone-100">Team Lab</span>
               </Link>
 
-              {/* Simple navigation - just Teams */}
-              <div className="hidden sm:flex items-center">
+              {/* Navigation */}
+              <div className="hidden sm:flex items-center gap-1">
                 <Link
                   href="/teams"
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -51,6 +51,16 @@ export function AdminHeader() {
                   }`}
                 >
                   Teams
+                </Link>
+                <Link
+                  href="/backlog"
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    pathname?.startsWith('/backlog')
+                      ? 'bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400'
+                      : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800'
+                  }`}
+                >
+                  Backlog
                 </Link>
               </div>
             </div>
