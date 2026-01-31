@@ -196,12 +196,41 @@ export function TeamsListContent({ teams }: TeamsListContentProps) {
                       }`}>
                         {team.pulse.average_score}
                       </div>
+                      {/* Trend indicator */}
+                      {team.pulse.trend && (
+                        <div className={`flex items-center justify-center w-5 h-5 rounded ${
+                          team.pulse.trend === 'up' ? 'text-green-500' :
+                          team.pulse.trend === 'down' ? 'text-red-500' :
+                          'text-stone-400 dark:text-stone-500'
+                        }`}>
+                          {team.pulse.trend === 'up' && (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          )}
+                          {team.pulse.trend === 'down' && (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          )}
+                          {team.pulse.trend === 'stable' && (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+                            </svg>
+                          )}
+                        </div>
+                      )}
                       <span className="text-xs text-stone-400 dark:text-stone-500">Pulse</span>
                       <span className="absolute bottom-full left-0 mb-2 px-2 py-1 text-xs bg-stone-900 text-white rounded shadow-lg opacity-0 group-hover/score:opacity-100 transition-opacity whitespace-nowrap z-10">
                         {team.pulse.average_score >= 4 ? t('scoreExcellent') :
                          team.pulse.average_score >= 3 ? t('scoreGood') :
                          team.pulse.average_score >= 2 ? t('scoreAverage') :
                          t('scoreLow')}
+                        {team.pulse.trend && ` • ${
+                          team.pulse.trend === 'up' ? t('trendUp') :
+                          team.pulse.trend === 'down' ? t('trendDown') :
+                          t('trendStable')
+                        }`}
                       </span>
                     </div>
                   )}
@@ -215,12 +244,41 @@ export function TeamsListContent({ teams }: TeamsListContentProps) {
                       }`}>
                         {team.delta.average_score}
                       </div>
+                      {/* Delta Trend indicator */}
+                      {team.delta.trend && (
+                        <div className={`flex items-center justify-center w-5 h-5 rounded ${
+                          team.delta.trend === 'up' ? 'text-green-500' :
+                          team.delta.trend === 'down' ? 'text-red-500' :
+                          'text-stone-400 dark:text-stone-500'
+                        }`}>
+                          {team.delta.trend === 'up' && (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          )}
+                          {team.delta.trend === 'down' && (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          )}
+                          {team.delta.trend === 'stable' && (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+                            </svg>
+                          )}
+                        </div>
+                      )}
                       <span className="text-xs text-stone-400 dark:text-stone-500">Delta</span>
                       <span className="absolute bottom-full left-0 mb-2 px-2 py-1 text-xs bg-stone-900 text-white rounded shadow-lg opacity-0 group-hover/score:opacity-100 transition-opacity whitespace-nowrap z-10">
                         {team.delta.average_score >= 4 ? t('scoreExcellent') :
                          team.delta.average_score >= 3 ? t('scoreGood') :
                          team.delta.average_score >= 2 ? t('scoreAverage') :
                          t('scoreLow')}
+                        {team.delta.trend && ` • ${
+                          team.delta.trend === 'up' ? t('trendUp') :
+                          team.delta.trend === 'down' ? t('trendDown') :
+                          t('trendStable')
+                        }`}
                       </span>
                     </div>
                   )}

@@ -3,12 +3,16 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { UnifiedTeam, enableTool, disableTool, deleteTeam } from '@/domain/teams/actions'
+import { UnifiedTeam, enableTool, disableTool, deleteTeam, exportPulseData } from '@/domain/teams/actions'
 import { Button } from '@/components/ui/button'
 import { useTranslation, TranslationFunction } from '@/lib/i18n/context'
 import { PulseMetrics } from '@/components/admin/pulse-metrics'
 import { ShareLinkSection } from '@/components/admin/share-link-section'
 import { GettingStartedChecklist } from '@/components/teams/getting-started-checklist'
+import { OverallSignal } from '@/components/teams/overall-signal'
+import { SessionCompare } from '@/components/delta/session-compare'
+import { CoachQuestions } from '@/components/teams/coach-questions'
+import { FeedbackTool } from '@/components/teams/feedback-tool'
 import type { TeamMetrics, PulseInsight } from '@/domain/metrics/types'
 import type { DeltaSessionWithStats } from '@/domain/delta/types'
 
@@ -54,6 +58,7 @@ export function TeamDetailContent({ team, pulseMetrics, pulseInsights = [], delt
 
   const [activeTab, setActiveTab] = useState<TabType>(getInitialTab)
   const [loading, setLoading] = useState<string | null>(null)
+  const [showCompare, setShowCompare] = useState(false)
 
   // Update tab when URL changes (e.g., browser back/forward)
   useEffect(() => {
@@ -103,6 +108,42 @@ export function TeamDetailContent({ team, pulseMetrics, pulseInsights = [], delt
     router.push('/teams')
   }
 
+  const handleExportCSV = async () => {
+    setLoading('export')
+    const result = await exportPulseData(team.id)
+    setLoading(null)
+
+    if (!result.success || !result.data || result.data.length === 0) {
+      alert(result.error || t('exportNoData'))
+      return
+    }
+
+    // Generate CSV content
+    const headers = ['Date', 'Mood', 'Alias', 'Comment']
+    const rows = result.data.map(row => [
+      row.date,
+      row.mood.toString(),
+      row.alias || '',
+      row.comment ? `"${row.comment.replace(/"/g, '""')}"` : '',
+    ])
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(',')),
+    ].join('\n')
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `pulse-${team.slug}-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const tabs: { key: TabType; label: string; premium?: boolean }[] = [
     { key: 'pulse', label: t('teamsDetailPulse') },
     { key: 'delta', label: t('teamsDetailDelta') },
@@ -142,6 +183,18 @@ export function TeamDetailContent({ team, pulseMetrics, pulseInsights = [], delt
         hasPulseEntries={(team.pulse?.participant_count || 0) > 0}
         hasDeltaSessions={(team.delta?.total_sessions || 0) > 0}
         hasClosedSessions={(team.delta?.closed_sessions || 0) > 0}
+      />
+
+      {/* Overall Signal - shows combined health score */}
+      <OverallSignal
+        pulseScore={team.pulse?.average_score || null}
+        deltaScore={team.delta?.average_score || null}
+        pulseParticipation={(() => {
+          const effectiveSize = team.expected_team_size || team.pulse?.participant_count || 1
+          const todayCount = team.pulse?.today_entries || 0
+          return effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
+        })()}
+        deltaSessions={team.delta?.total_sessions || 0}
       />
 
       {/* Tabs */}
@@ -247,7 +300,18 @@ export function TeamDetailContent({ team, pulseMetrics, pulseInsights = [], delt
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleExportCSV}
+                    loading={loading === 'export'}
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    {t('exportCSV')}
+                  </Button>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -313,15 +377,28 @@ export function TeamDetailContent({ team, pulseMetrics, pulseInsights = [], delt
                     </>
                   )}
                 </div>
-                {/* New Session button */}
-                <Link href={`/teams/${team.id}/delta/new`}>
-                  <Button className="w-full sm:w-auto">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    {t('newSession')}
-                  </Button>
-                </Link>
+                {/* Action buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/teams/${team.id}/delta/new`}>
+                    <Button className="w-full sm:w-auto">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      {t('newSession')}
+                    </Button>
+                  </Link>
+                  {(team.delta?.closed_sessions || 0) >= 2 && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowCompare(true)}
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      {t('deltaCompare')}
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Sessions list */}
@@ -417,35 +494,7 @@ export function TeamDetailContent({ team, pulseMetrics, pulseInsights = [], delt
               </div>
             </div>
 
-            {/* Feedback Rules */}
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 mb-6">
-              <h4 className="font-medium text-purple-900 dark:text-purple-300 mb-3">{t('feedbackRules')}</h4>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-sm text-purple-800 dark:text-purple-300">
-                  <span className="w-5 h-5 rounded-full bg-purple-200 dark:bg-purple-800 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">1</span>
-                  {t('feedbackRule1')}
-                </li>
-                <li className="flex items-start gap-2 text-sm text-purple-800 dark:text-purple-300">
-                  <span className="w-5 h-5 rounded-full bg-purple-200 dark:bg-purple-800 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">2</span>
-                  {t('feedbackRule2')}
-                </li>
-                <li className="flex items-start gap-2 text-sm text-purple-800 dark:text-purple-300">
-                  <span className="w-5 h-5 rounded-full bg-purple-200 dark:bg-purple-800 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">3</span>
-                  {t('feedbackRule3')}
-                </li>
-                <li className="flex items-start gap-2 text-sm text-purple-800 dark:text-purple-300">
-                  <span className="w-5 h-5 rounded-full bg-purple-200 dark:bg-purple-800 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">4</span>
-                  {t('feedbackRule4')}
-                </li>
-              </ul>
-            </div>
-
-            {/* Coming Soon */}
-            <div className="text-center py-8 bg-stone-50 dark:bg-stone-700 rounded-lg">
-              <div className="text-4xl mb-3">🚧</div>
-              <p className="text-stone-600 dark:text-stone-300 font-medium">{t('feedbackComingSoon')}</p>
-              <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">Feedback tool wordt binnenkort toegevoegd</p>
-            </div>
+            <FeedbackTool teamId={team.id} teamName={team.name} />
           </div>
         </div>
       )}
@@ -471,12 +520,17 @@ export function TeamDetailContent({ team, pulseMetrics, pulseInsights = [], delt
               <p className="text-sm text-emerald-800 dark:text-emerald-300 italic">{t('coachQuestionsExample')}</p>
             </div>
 
-            {/* Coach Question Generator - Coming Soon */}
-            <div className="text-center py-8 bg-stone-50 dark:bg-stone-700 rounded-lg">
-              <div className="text-4xl mb-3">🎯</div>
-              <p className="text-stone-600 dark:text-stone-300 font-medium">{t('feedbackComingSoon')}</p>
-              <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">AI-powered coaching vragen generator</p>
-            </div>
+            {/* Coach Question Generator */}
+            <CoachQuestions
+              pulseScore={team.pulse?.average_score || null}
+              pulseParticipation={(() => {
+                const effectiveSize = team.expected_team_size || team.pulse?.participant_count || 1
+                const todayCount = team.pulse?.today_entries || 0
+                return effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
+              })()}
+              deltaTensions={[]}
+              teamName={team.name}
+            />
           </div>
         </div>
       )}
@@ -650,6 +704,14 @@ export function TeamDetailContent({ team, pulseMetrics, pulseInsights = [], delt
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Session Compare Modal */}
+      {showCompare && (
+        <SessionCompare
+          teamId={team.id}
+          onClose={() => setShowCompare(false)}
+        />
       )}
     </div>
   )

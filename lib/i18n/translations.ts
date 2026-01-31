@@ -479,6 +479,23 @@ export const translations = {
     emptyStateInsightsTitle: 'Inzichten',
     emptyStateInsightsDesc: 'Data-driven besluiten',
     emptyStateTime: 'Klaar in 30 seconden',
+
+    // Overall Signal
+    signalTitle: 'Team Signaal',
+    signalNoData: 'Geen data',
+    signalExcellent: 'Uitstekend',
+    signalGood: 'Goed',
+    signalAttention: 'Aandacht',
+    signalCritical: 'Kritiek',
+    signalCollectData: 'Start met data verzamelen',
+    signalAddDelta: 'Voeg Delta toe voor completer beeld',
+    signalAddPulse: 'Voeg Pulse toe voor dagelijkse signalen',
+    signalParticipation: 'Deelname',
+
+    // Export
+    exportData: 'Exporteer data',
+    exportCSV: 'Download CSV',
+    exportNoData: 'Geen data om te exporteren',
   },
 
   en: {
@@ -961,6 +978,23 @@ export const translations = {
     emptyStateInsightsTitle: 'Insights',
     emptyStateInsightsDesc: 'Data-driven decisions',
     emptyStateTime: 'Ready in 30 seconds',
+
+    // Overall Signal
+    signalTitle: 'Team Signal',
+    signalNoData: 'No data',
+    signalExcellent: 'Excellent',
+    signalGood: 'Good',
+    signalAttention: 'Attention',
+    signalCritical: 'Critical',
+    signalCollectData: 'Start collecting data',
+    signalAddDelta: 'Add Delta for a more complete picture',
+    signalAddPulse: 'Add Pulse for daily signals',
+    signalParticipation: 'Participation',
+
+    // Export
+    exportData: 'Export data',
+    exportCSV: 'Download CSV',
+    exportNoData: 'No data to export',
   },
 } as const
 

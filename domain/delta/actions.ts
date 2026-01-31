@@ -827,3 +827,203 @@ export async function getSessionShareLink(sessionId: string): Promise<string | n
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   return `${baseUrl}/d/${session.session_code}`
 }
+
+// ============================================
+// SESSION COMPARISON
+// ============================================
+
+export interface SessionComparison {
+  session1: {
+    id: string
+    angle: string
+    date: string
+    overall_score: number
+    response_count: number
+  }
+  session2: {
+    id: string
+    angle: string
+    date: string
+    overall_score: number
+    response_count: number
+  }
+  statements: {
+    id: string
+    text: string
+    score1: number
+    score2: number
+    change: number // score2 - score1
+    status: 'improved' | 'declined' | 'unchanged'
+  }[]
+  summary: {
+    improved_count: number
+    declined_count: number
+    unchanged_count: number
+    overall_change: number
+  }
+}
+
+/**
+ * Compare two Delta sessions (must be same angle)
+ */
+export async function compareSessions(
+  sessionId1: string,
+  sessionId2: string
+): Promise<{ success: boolean; data?: SessionComparison; error?: string }> {
+  const adminUser = await requireAdmin()
+  const supabase = await createAdminClient()
+
+  // Verify ownership of both sessions
+  if (!(await verifySessionOwnership(sessionId1, adminUser))) {
+    return { success: false, error: 'Access denied to session 1' }
+  }
+  if (!(await verifySessionOwnership(sessionId2, adminUser))) {
+    return { success: false, error: 'Access denied to session 2' }
+  }
+
+  // Get both sessions
+  const { data: sessions } = await supabase
+    .from('delta_sessions')
+    .select('*')
+    .in('id', [sessionId1, sessionId2])
+
+  if (!sessions || sessions.length !== 2) {
+    return { success: false, error: 'Sessions not found' }
+  }
+
+  const s1 = sessions.find(s => s.id === sessionId1)!
+  const s2 = sessions.find(s => s.id === sessionId2)!
+
+  // Must be same angle to compare meaningfully
+  if (s1.angle !== s2.angle) {
+    return { success: false, error: 'Can only compare sessions with the same angle' }
+  }
+
+  // Get synthesis for both sessions
+  const synth1 = await synthesizeSession(sessionId1)
+  const synth2 = await synthesizeSession(sessionId2)
+
+  if (!synth1 || !synth2) {
+    return { success: false, error: 'Need at least 3 responses in each session to compare' }
+  }
+
+  // Build statement comparison
+  const statementComparisons: SessionComparison['statements'] = []
+  const THRESHOLD = 0.3 // Change threshold for improved/declined
+
+  for (const score1 of synth1.all_scores) {
+    const score2 = synth2.all_scores.find(s => s.statement.id === score1.statement.id)
+    if (!score2) continue
+
+    const change = score2.score - score1.score
+    let status: 'improved' | 'declined' | 'unchanged' = 'unchanged'
+    if (change > THRESHOLD) status = 'improved'
+    else if (change < -THRESHOLD) status = 'declined'
+
+    statementComparisons.push({
+      id: score1.statement.id,
+      text: score1.statement.text,
+      score1: Math.round(score1.score * 10) / 10,
+      score2: Math.round(score2.score * 10) / 10,
+      change: Math.round(change * 10) / 10,
+      status,
+    })
+  }
+
+  // Sort by change (biggest improvements first)
+  statementComparisons.sort((a, b) => b.change - a.change)
+
+  const improved_count = statementComparisons.filter(s => s.status === 'improved').length
+  const declined_count = statementComparisons.filter(s => s.status === 'declined').length
+  const unchanged_count = statementComparisons.filter(s => s.status === 'unchanged').length
+  const overall_change = Math.round((synth2.overall_score - synth1.overall_score) * 10) / 10
+
+  return {
+    success: true,
+    data: {
+      session1: {
+        id: s1.id,
+        angle: s1.angle,
+        date: s1.created_at,
+        overall_score: Math.round(synth1.overall_score * 10) / 10,
+        response_count: synth1.response_count,
+      },
+      session2: {
+        id: s2.id,
+        angle: s2.angle,
+        date: s2.created_at,
+        overall_score: Math.round(synth2.overall_score * 10) / 10,
+        response_count: synth2.response_count,
+      },
+      statements: statementComparisons,
+      summary: {
+        improved_count,
+        declined_count,
+        unchanged_count,
+        overall_change,
+      },
+    },
+  }
+}
+
+/**
+ * Get sessions available for comparison (same angle, both closed with 3+ responses)
+ */
+export async function getComparableSessions(teamId: string): Promise<{
+  angle: string
+  sessions: { id: string; date: string; score: number }[]
+}[]> {
+  const adminUser = await requireAdmin()
+  const supabase = await createAdminClient()
+
+  // Verify team ownership
+  const { data: team } = await supabase
+    .from('teams')
+    .select('owner_id')
+    .eq('id', teamId)
+    .single()
+
+  if (!team) return []
+  if (adminUser.role !== 'super_admin' && team.owner_id !== adminUser.id) return []
+
+  // Get closed sessions
+  const { data: sessions } = await supabase
+    .from('delta_sessions')
+    .select('id, angle, created_at, status')
+    .eq('team_id', teamId)
+    .eq('status', 'closed')
+    .order('created_at', { ascending: false })
+
+  if (!sessions || sessions.length === 0) return []
+
+  // Group by angle and get scores
+  const byAngle: Record<string, { id: string; date: string; score: number }[]> = {}
+
+  for (const session of sessions) {
+    // Get response count
+    const { count } = await supabase
+      .from('delta_responses')
+      .select('*', { count: 'exact', head: true })
+      .eq('session_id', session.id)
+
+    if ((count || 0) < 3) continue
+
+    // Get synthesis for score
+    const synth = await synthesizeSession(session.id)
+    if (!synth) continue
+
+    if (!byAngle[session.angle]) {
+      byAngle[session.angle] = []
+    }
+    byAngle[session.angle].push({
+      id: session.id,
+      date: session.created_at,
+      score: Math.round(synth.overall_score * 10) / 10,
+    })
+  }
+
+  // Only return angles with 2+ sessions
+  return Object.entries(byAngle)
+    .filter(([, sessions]) => sessions.length >= 2)
+    .map(([angle, sessions]) => ({ angle, sessions }))
+}

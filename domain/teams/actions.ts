@@ -54,12 +54,23 @@ export interface UnifiedTeam extends Team {
     active_sessions: number
     closed_sessions: number
     average_score: number | null
+    trend: 'up' | 'down' | 'stable' | null
     last_session_date: string | null
   } | null
 
   // Computed
   last_updated: string
   needs_attention: boolean
+}
+
+// Helper to calculate trend by comparing two periods
+function calculateTrend(currentAvg: number | null, previousAvg: number | null): 'up' | 'down' | 'stable' | null {
+  if (currentAvg === null || previousAvg === null) return null
+  const threshold = 0.3 // Significant change threshold
+  const diff = currentAvg - previousAvg
+  if (diff > threshold) return 'up'
+  if (diff < -threshold) return 'down'
+  return 'stable'
 }
 
 // Helper to verify team ownership
@@ -198,7 +209,7 @@ export async function getTeamsUnified(filter?: 'all' | 'pulse' | 'delta' | 'need
           .eq('team_id', team.id)
           .eq('entry_date', new Date().toISOString().split('T')[0])
 
-        // Get 7-day average
+        // Get current 7-day average
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
         const { data: recentMoods } = await supabase
@@ -210,6 +221,22 @@ export async function getTeamsUnified(filter?: 'all' | 'pulse' | 'delta' | 'need
         const avgScore = recentMoods && recentMoods.length > 0
           ? recentMoods.reduce((sum, m) => sum + m.mood, 0) / recentMoods.length
           : null
+
+        // Get previous 7-day average (day 8-14) for trend calculation
+        const fourteenDaysAgo = new Date()
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+        const { data: previousMoods } = await supabase
+          .from('mood_entries')
+          .select('mood')
+          .eq('team_id', team.id)
+          .gte('entry_date', fourteenDaysAgo.toISOString().split('T')[0])
+          .lt('entry_date', sevenDaysAgo.toISOString().split('T')[0])
+
+        const previousAvgScore = previousMoods && previousMoods.length > 0
+          ? previousMoods.reduce((sum, m) => sum + m.mood, 0) / previousMoods.length
+          : null
+
+        const trend = calculateTrend(avgScore, previousAvgScore)
 
         // Get active link
         const { data: activeLink } = await supabase
@@ -224,7 +251,7 @@ export async function getTeamsUnified(filter?: 'all' | 'pulse' | 'delta' | 'need
           participant_count: participantCount || 0,
           today_entries: todayEntries || 0,
           average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
-          trend: null as 'up' | 'down' | 'stable' | null, // TODO: compute trend
+          trend,
           share_link: activeLink ? team.slug : null,
         }
       }
@@ -241,31 +268,52 @@ export async function getTeamsUnified(filter?: 'all' | 'pulse' | 'delta' | 'need
         const activeSessions = sessions?.filter(s => s.status === 'active').length || 0
         const closedSessions = sessions?.filter(s => s.status === 'closed') || []
 
-        // Calculate average score from responses for closed sessions
-        let avgScore: number | null = null
-        if (closedSessions.length > 0) {
-          const closedIds = closedSessions.map(s => s.id)
+        // Sort closed sessions by date (newest first)
+        const sortedClosed = closedSessions.sort((a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+
+        // Helper to calculate average score for a set of session IDs
+        const calculateSessionsAvg = async (sessionIds: string[]): Promise<number | null> => {
+          if (sessionIds.length === 0) return null
           const { data: responses } = await adminSupabase
             .from('delta_responses')
             .select('answers')
-            .in('session_id', closedIds)
+            .in('session_id', sessionIds)
 
-          if (responses && responses.length > 0) {
-            let totalScore = 0
-            let scoreCount = 0
-            for (const r of responses) {
-              const answers = r.answers as Record<string, number>
-              for (const score of Object.values(answers)) {
-                if (typeof score === 'number' && score >= 1 && score <= 5) {
-                  totalScore += score
-                  scoreCount++
-                }
+          if (!responses || responses.length === 0) return null
+          let totalScore = 0
+          let scoreCount = 0
+          for (const r of responses) {
+            const answers = r.answers as Record<string, number>
+            for (const score of Object.values(answers)) {
+              if (typeof score === 'number' && score >= 1 && score <= 5) {
+                totalScore += score
+                scoreCount++
               }
             }
-            if (scoreCount > 0) {
-              avgScore = totalScore / scoreCount
-            }
           }
+          return scoreCount > 0 ? totalScore / scoreCount : null
+        }
+
+        // Calculate overall average score
+        const avgScore = await calculateSessionsAvg(sortedClosed.map(s => s.id))
+
+        // Calculate trend: compare last 2 sessions vs previous 2 sessions
+        let deltaTrend: 'up' | 'down' | 'stable' | null = null
+        if (sortedClosed.length >= 4) {
+          const recentIds = sortedClosed.slice(0, 2).map(s => s.id)
+          const olderIds = sortedClosed.slice(2, 4).map(s => s.id)
+          const recentAvg = await calculateSessionsAvg(recentIds)
+          const olderAvg = await calculateSessionsAvg(olderIds)
+          deltaTrend = calculateTrend(recentAvg, olderAvg)
+        } else if (sortedClosed.length >= 2) {
+          // With 2-3 sessions, compare last vs first
+          const recentIds = [sortedClosed[0].id]
+          const olderIds = [sortedClosed[sortedClosed.length - 1].id]
+          const recentAvg = await calculateSessionsAvg(recentIds)
+          const olderAvg = await calculateSessionsAvg(olderIds)
+          deltaTrend = calculateTrend(recentAvg, olderAvg)
         }
 
         const lastSession = sessions?.sort((a, b) =>
@@ -278,6 +326,7 @@ export async function getTeamsUnified(filter?: 'all' | 'pulse' | 'delta' | 'need
           active_sessions: activeSessions,
           closed_sessions: closedSessions.length,
           average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
+          trend: deltaTrend,
           last_session_date: lastSession?.created_at || null,
         }
       }
@@ -404,7 +453,7 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
       .eq('team_id', team.id)
       .eq('entry_date', new Date().toISOString().split('T')[0])
 
-    // Get 7-day average
+    // Get current 7-day average
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
     const { data: recentMoods } = await supabase
@@ -416,6 +465,22 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
     const avgScore = recentMoods && recentMoods.length > 0
       ? recentMoods.reduce((sum, m) => sum + m.mood, 0) / recentMoods.length
       : null
+
+    // Get previous 7-day average (day 8-14) for trend calculation
+    const fourteenDaysAgo = new Date()
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+    const { data: previousMoods } = await supabase
+      .from('mood_entries')
+      .select('mood')
+      .eq('team_id', team.id)
+      .gte('entry_date', fourteenDaysAgo.toISOString().split('T')[0])
+      .lt('entry_date', sevenDaysAgo.toISOString().split('T')[0])
+
+    const previousAvgScore = previousMoods && previousMoods.length > 0
+      ? previousMoods.reduce((sum, m) => sum + m.mood, 0) / previousMoods.length
+      : null
+
+    const trend = calculateTrend(avgScore, previousAvgScore)
 
     const { data: activeLink } = await supabase
       .from('invite_links')
@@ -429,7 +494,7 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
       participant_count: participantCount || 0,
       today_entries: todayEntries || 0,
       average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
-      trend: null as 'up' | 'down' | 'stable' | null,
+      trend,
       share_link: activeLink ? team.slug : null,
     }
   }
@@ -446,31 +511,52 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
     const activeSessions = sessions?.filter(s => s.status === 'active').length || 0
     const closedSessions = sessions?.filter(s => s.status === 'closed') || []
 
-    // Calculate average score from responses for closed sessions
-    let avgScore: number | null = null
-    if (closedSessions.length > 0) {
-      const closedIds = closedSessions.map(s => s.id)
+    // Sort closed sessions by date (newest first)
+    const sortedClosed = closedSessions.sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+
+    // Helper to calculate average score for a set of session IDs
+    const calculateSessionsAvg = async (sessionIds: string[]): Promise<number | null> => {
+      if (sessionIds.length === 0) return null
       const { data: responses } = await adminSupabase
         .from('delta_responses')
         .select('answers')
-        .in('session_id', closedIds)
+        .in('session_id', sessionIds)
 
-      if (responses && responses.length > 0) {
-        let totalScore = 0
-        let scoreCount = 0
-        for (const r of responses) {
-          const answers = r.answers as Record<string, number>
-          for (const score of Object.values(answers)) {
-            if (typeof score === 'number' && score >= 1 && score <= 5) {
-              totalScore += score
-              scoreCount++
-            }
+      if (!responses || responses.length === 0) return null
+      let totalScore = 0
+      let scoreCount = 0
+      for (const r of responses) {
+        const answers = r.answers as Record<string, number>
+        for (const score of Object.values(answers)) {
+          if (typeof score === 'number' && score >= 1 && score <= 5) {
+            totalScore += score
+            scoreCount++
           }
         }
-        if (scoreCount > 0) {
-          avgScore = totalScore / scoreCount
-        }
       }
+      return scoreCount > 0 ? totalScore / scoreCount : null
+    }
+
+    // Calculate overall average score
+    const avgScore = await calculateSessionsAvg(sortedClosed.map(s => s.id))
+
+    // Calculate trend: compare last 2 sessions vs previous 2 sessions
+    let deltaTrend: 'up' | 'down' | 'stable' | null = null
+    if (sortedClosed.length >= 4) {
+      const recentIds = sortedClosed.slice(0, 2).map(s => s.id)
+      const olderIds = sortedClosed.slice(2, 4).map(s => s.id)
+      const recentAvg = await calculateSessionsAvg(recentIds)
+      const olderAvg = await calculateSessionsAvg(olderIds)
+      deltaTrend = calculateTrend(recentAvg, olderAvg)
+    } else if (sortedClosed.length >= 2) {
+      // With 2-3 sessions, compare last vs first
+      const recentIds = [sortedClosed[0].id]
+      const olderIds = [sortedClosed[sortedClosed.length - 1].id]
+      const recentAvg = await calculateSessionsAvg(recentIds)
+      const olderAvg = await calculateSessionsAvg(olderIds)
+      deltaTrend = calculateTrend(recentAvg, olderAvg)
     }
 
     const lastSession = sessions?.sort((a, b) =>
@@ -483,6 +569,7 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
       active_sessions: activeSessions,
       closed_sessions: closedSessions.length,
       average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
+      trend: deltaTrend,
       last_session_date: lastSession?.created_at || null,
     }
   }
@@ -854,4 +941,45 @@ export async function getTeamMoodHistory(teamId: string, days: number = 7): Prom
     .rpc('get_team_trend', { p_team_id: teamId })
 
   return data || []
+}
+
+// Export Pulse data as CSV-ready format
+export async function exportPulseData(teamId: string): Promise<{
+  success: boolean
+  data?: {
+    date: string
+    mood: number
+    alias: string | null
+    comment: string | null
+  }[]
+  error?: string
+}> {
+  const adminUser = await requireAdmin()
+  const supabase = await createClient()
+
+  // Verify ownership
+  if (!(await verifyTeamOwnership(teamId, adminUser))) {
+    return { success: false, error: 'Access denied' }
+  }
+
+  // Get all mood entries for this team
+  const { data: entries, error } = await supabase
+    .from('mood_entries')
+    .select('entry_date, mood, alias, comment')
+    .eq('team_id', teamId)
+    .order('entry_date', { ascending: false })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return {
+    success: true,
+    data: (entries || []).map(e => ({
+      date: e.entry_date,
+      mood: e.mood,
+      alias: e.alias,
+      comment: e.comment,
+    })),
+  }
 }
