@@ -155,7 +155,98 @@ export async function getTeams(appType?: 'pulse' | 'delta'): Promise<TeamWithSta
   return teamsWithStats
 }
 
+// Helper: Check if team has denormalized stats (migration has run)
+function hasDenormalizedStats(team: Record<string, unknown>): boolean {
+  return team.pulse_stats_updated_at !== undefined && team.pulse_stats_updated_at !== null
+}
+
+// Helper: Compute Pulse stats the old way (fallback before migration)
+async function computePulseStatsFallback(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  teamId: string,
+  teamSlug: string,
+  hasActiveLink: boolean
+): Promise<NonNullable<UnifiedTeam['pulse']>> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+  const [participantResult, todayResult, recentMoodsResult, prevMoodsResult] = await Promise.all([
+    supabase.from('participants').select('*', { count: 'exact', head: true }).eq('team_id', teamId),
+    supabase.from('mood_entries').select('*', { count: 'exact', head: true }).eq('team_id', teamId).eq('entry_date', new Date().toISOString().split('T')[0]),
+    supabase.from('mood_entries').select('mood').eq('team_id', teamId).gte('entry_date', sevenDaysAgo),
+    supabase.from('mood_entries').select('mood').eq('team_id', teamId).gte('entry_date', fourteenDaysAgo).lt('entry_date', sevenDaysAgo),
+  ])
+
+  const avgScore = recentMoodsResult.data && recentMoodsResult.data.length > 0
+    ? recentMoodsResult.data.reduce((sum, m) => sum + m.mood, 0) / recentMoodsResult.data.length
+    : null
+  const prevAvgScore = prevMoodsResult.data && prevMoodsResult.data.length > 0
+    ? prevMoodsResult.data.reduce((sum, m) => sum + m.mood, 0) / prevMoodsResult.data.length
+    : null
+
+  return {
+    enabled: true,
+    participant_count: participantResult.count || 0,
+    today_entries: todayResult.count || 0,
+    average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
+    trend: calculateTrend(avgScore, prevAvgScore),
+    share_link: hasActiveLink ? teamSlug : null,
+  }
+}
+
+// Helper: Compute Delta stats the old way (fallback before migration)
+async function computeDeltaStatsFallback(teamId: string): Promise<NonNullable<UnifiedTeam['delta']>> {
+  const adminSupabase = await createAdminClient()
+  const { data: sessions } = await adminSupabase
+    .from('delta_sessions')
+    .select('id, status, created_at')
+    .eq('team_id', teamId)
+
+  const activeSessions = sessions?.filter(s => s.status === 'active').length || 0
+  const closedSessions = sessions?.filter(s => s.status === 'closed') || []
+  const sortedClosed = closedSessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  const calculateSessionsAvg = async (sessionIds: string[]): Promise<number | null> => {
+    if (sessionIds.length === 0) return null
+    const { data: responses } = await adminSupabase.from('delta_responses').select('answers').in('session_id', sessionIds)
+    if (!responses || responses.length === 0) return null
+    let totalScore = 0, scoreCount = 0
+    for (const r of responses) {
+      const answers = r.answers as Record<string, number>
+      for (const score of Object.values(answers)) {
+        if (typeof score === 'number' && score >= 1 && score <= 5) { totalScore += score; scoreCount++ }
+      }
+    }
+    return scoreCount > 0 ? totalScore / scoreCount : null
+  }
+
+  const avgScore = await calculateSessionsAvg(sortedClosed.map(s => s.id))
+  let deltaTrend: 'up' | 'down' | 'stable' | null = null
+  if (sortedClosed.length >= 4) {
+    const recentAvg = await calculateSessionsAvg(sortedClosed.slice(0, 2).map(s => s.id))
+    const olderAvg = await calculateSessionsAvg(sortedClosed.slice(2, 4).map(s => s.id))
+    deltaTrend = calculateTrend(recentAvg, olderAvg)
+  } else if (sortedClosed.length >= 2) {
+    const recentAvg = await calculateSessionsAvg([sortedClosed[0].id])
+    const olderAvg = await calculateSessionsAvg([sortedClosed[sortedClosed.length - 1].id])
+    deltaTrend = calculateTrend(recentAvg, olderAvg)
+  }
+
+  const lastSession = sessions?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+
+  return {
+    enabled: true,
+    total_sessions: sessions?.length || 0,
+    active_sessions: activeSessions,
+    closed_sessions: closedSessions.length,
+    average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
+    trend: deltaTrend,
+    last_session_date: lastSession?.created_at || null,
+  }
+}
+
 // Get all teams with unified stats for both tools
+// Uses denormalized stats if available (fast), falls back to computed stats (slow but works without migration)
 export async function getTeamsUnified(filter?: 'all' | 'pulse' | 'delta' | 'needs_attention'): Promise<UnifiedTeam[]> {
   const adminUser = await requireAdmin()
   const supabase = await createClient()
@@ -173,161 +264,74 @@ export async function getTeamsUnified(filter?: 'all' | 'pulse' | 'delta' | 'need
   const { data: teams, error } = await query
   if (error) throw error
 
-  // Get all team tools in one query
   const teamIds = (teams || []).map(t => t.id)
-  const { data: allTools } = await supabase
-    .from('team_tools')
-    .select('*')
-    .in('team_id', teamIds)
+  if (teamIds.length === 0) return []
 
+  // Batch fetch: team tools and active invite links
+  const [toolsResult, linksResult] = await Promise.all([
+    supabase.from('team_tools').select('*').in('team_id', teamIds),
+    supabase.from('invite_links').select('team_id').in('team_id', teamIds).eq('is_active', true),
+  ])
+
+  // Build lookup maps
   const toolsByTeam = new Map<string, TeamTool[]>()
-  allTools?.forEach(tool => {
+  toolsResult.data?.forEach(tool => {
     const existing = toolsByTeam.get(tool.team_id) || []
     existing.push({ tool: tool.tool, enabled_at: tool.enabled_at, config: tool.config || {} })
     toolsByTeam.set(tool.team_id, existing)
   })
 
-  // Build unified teams
+  const teamsWithActiveLink = new Set(linksResult.data?.map(l => l.team_id) || [])
+
+  // Build unified teams - use denormalized data if available, else fallback
   const unifiedTeams: UnifiedTeam[] = await Promise.all(
     (teams || []).map(async (team) => {
       const teamTools = toolsByTeam.get(team.id) || []
       const tools_enabled = teamTools.map(t => t.tool) as ('pulse' | 'delta')[]
       const hasPulse = tools_enabled.includes('pulse')
       const hasDelta = tools_enabled.includes('delta')
+      const useFastPath = hasDenormalizedStats(team)
 
       // Pulse stats
-      let pulseStats = null
+      let pulseStats: UnifiedTeam['pulse'] = null
       if (hasPulse) {
-        const { count: participantCount } = await supabase
-          .from('participants')
-          .select('*', { count: 'exact', head: true })
-          .eq('team_id', team.id)
-
-        const { count: todayEntries } = await supabase
-          .from('mood_entries')
-          .select('*', { count: 'exact', head: true })
-          .eq('team_id', team.id)
-          .eq('entry_date', new Date().toISOString().split('T')[0])
-
-        // Get current 7-day average
-        const sevenDaysAgo = new Date()
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-        const { data: recentMoods } = await supabase
-          .from('mood_entries')
-          .select('mood')
-          .eq('team_id', team.id)
-          .gte('entry_date', sevenDaysAgo.toISOString().split('T')[0])
-
-        const avgScore = recentMoods && recentMoods.length > 0
-          ? recentMoods.reduce((sum, m) => sum + m.mood, 0) / recentMoods.length
-          : null
-
-        // Get previous 7-day average (day 8-14) for trend calculation
-        const fourteenDaysAgo = new Date()
-        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
-        const { data: previousMoods } = await supabase
-          .from('mood_entries')
-          .select('mood')
-          .eq('team_id', team.id)
-          .gte('entry_date', fourteenDaysAgo.toISOString().split('T')[0])
-          .lt('entry_date', sevenDaysAgo.toISOString().split('T')[0])
-
-        const previousAvgScore = previousMoods && previousMoods.length > 0
-          ? previousMoods.reduce((sum, m) => sum + m.mood, 0) / previousMoods.length
-          : null
-
-        const trend = calculateTrend(avgScore, previousAvgScore)
-
-        // Get active link
-        const { data: activeLink } = await supabase
-          .from('invite_links')
-          .select('id')
-          .eq('team_id', team.id)
-          .eq('is_active', true)
-          .single()
-
-        pulseStats = {
-          enabled: true,
-          participant_count: participantCount || 0,
-          today_entries: todayEntries || 0,
-          average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
-          trend,
-          share_link: activeLink ? team.slug : null,
+        if (useFastPath) {
+          // Fast path: use denormalized columns
+          const avgScore = team.pulse_avg_score ? parseFloat(String(team.pulse_avg_score)) : null
+          const prevAvgScore = team.pulse_prev_avg_score ? parseFloat(String(team.pulse_prev_avg_score)) : null
+          pulseStats = {
+            enabled: true,
+            participant_count: (team.pulse_participant_count as number) || 0,
+            today_entries: (team.pulse_today_entries as number) || 0,
+            average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
+            trend: calculateTrend(avgScore, prevAvgScore),
+            share_link: teamsWithActiveLink.has(team.id) ? team.slug : null,
+          }
+        } else {
+          // Fallback: compute on the fly (slow)
+          pulseStats = await computePulseStatsFallback(supabase, team.id, team.slug, teamsWithActiveLink.has(team.id))
         }
       }
 
-      // Delta stats (use admin client to bypass RLS on delta tables)
-      let deltaStats = null
+      // Delta stats
+      let deltaStats: UnifiedTeam['delta'] = null
       if (hasDelta) {
-        const adminSupabase = await createAdminClient()
-        const { data: sessions } = await adminSupabase
-          .from('delta_sessions')
-          .select('id, status, created_at')
-          .eq('team_id', team.id)
-
-        const activeSessions = sessions?.filter(s => s.status === 'active').length || 0
-        const closedSessions = sessions?.filter(s => s.status === 'closed') || []
-
-        // Sort closed sessions by date (newest first)
-        const sortedClosed = closedSessions.sort((a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-
-        // Helper to calculate average score for a set of session IDs
-        const calculateSessionsAvg = async (sessionIds: string[]): Promise<number | null> => {
-          if (sessionIds.length === 0) return null
-          const { data: responses } = await adminSupabase
-            .from('delta_responses')
-            .select('answers')
-            .in('session_id', sessionIds)
-
-          if (!responses || responses.length === 0) return null
-          let totalScore = 0
-          let scoreCount = 0
-          for (const r of responses) {
-            const answers = r.answers as Record<string, number>
-            for (const score of Object.values(answers)) {
-              if (typeof score === 'number' && score >= 1 && score <= 5) {
-                totalScore += score
-                scoreCount++
-              }
-            }
+        if (useFastPath) {
+          // Fast path: use denormalized columns
+          const avgScore = team.delta_avg_score ? parseFloat(String(team.delta_avg_score)) : null
+          const prevAvgScore = team.delta_prev_avg_score ? parseFloat(String(team.delta_prev_avg_score)) : null
+          deltaStats = {
+            enabled: true,
+            total_sessions: (team.delta_total_sessions as number) || 0,
+            active_sessions: (team.delta_active_sessions as number) || 0,
+            closed_sessions: (team.delta_closed_sessions as number) || 0,
+            average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
+            trend: calculateTrend(avgScore, prevAvgScore),
+            last_session_date: (team.delta_last_session_at as string) || null,
           }
-          return scoreCount > 0 ? totalScore / scoreCount : null
-        }
-
-        // Calculate overall average score
-        const avgScore = await calculateSessionsAvg(sortedClosed.map(s => s.id))
-
-        // Calculate trend: compare last 2 sessions vs previous 2 sessions
-        let deltaTrend: 'up' | 'down' | 'stable' | null = null
-        if (sortedClosed.length >= 4) {
-          const recentIds = sortedClosed.slice(0, 2).map(s => s.id)
-          const olderIds = sortedClosed.slice(2, 4).map(s => s.id)
-          const recentAvg = await calculateSessionsAvg(recentIds)
-          const olderAvg = await calculateSessionsAvg(olderIds)
-          deltaTrend = calculateTrend(recentAvg, olderAvg)
-        } else if (sortedClosed.length >= 2) {
-          // With 2-3 sessions, compare last vs first
-          const recentIds = [sortedClosed[0].id]
-          const olderIds = [sortedClosed[sortedClosed.length - 1].id]
-          const recentAvg = await calculateSessionsAvg(recentIds)
-          const olderAvg = await calculateSessionsAvg(olderIds)
-          deltaTrend = calculateTrend(recentAvg, olderAvg)
-        }
-
-        const lastSession = sessions?.sort((a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )[0]
-
-        deltaStats = {
-          enabled: true,
-          total_sessions: sessions?.length || 0,
-          active_sessions: activeSessions,
-          closed_sessions: closedSessions.length,
-          average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
-          trend: deltaTrend,
-          last_session_date: lastSession?.created_at || null,
+        } else {
+          // Fallback: compute on the fly (slow)
+          deltaStats = await computeDeltaStatsFallback(team.id)
         }
       }
 
@@ -412,16 +416,19 @@ export async function getTeam(id: string): Promise<TeamWithStats | null> {
 }
 
 // Get a single unified team with full stats
+// Uses denormalized stats if available (fast), falls back to computed stats (slow but works without migration)
 export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
   const adminUser = await requireAdmin()
   const supabase = await createClient()
 
-  const { data: team, error } = await supabase
-    .from('teams')
-    .select('*')
-    .eq('id', id)
-    .single()
+  // Fetch team, tools, and active link in parallel
+  const [teamResult, toolsResult, linkResult] = await Promise.all([
+    supabase.from('teams').select('*').eq('id', id).single(),
+    supabase.from('team_tools').select('*').eq('team_id', id),
+    supabase.from('invite_links').select('id').eq('team_id', id).eq('is_active', true).single(),
+  ])
 
+  const { data: team, error } = teamResult
   if (error || !team) return null
 
   // Verify ownership
@@ -429,148 +436,52 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
     return null
   }
 
-  // Get team tools
-  const { data: tools } = await supabase
-    .from('team_tools')
-    .select('*')
-    .eq('team_id', id)
-
-  const tools_enabled = (tools || []).map(t => t.tool) as ('pulse' | 'delta')[]
+  const tools_enabled = (toolsResult.data || []).map(t => t.tool) as ('pulse' | 'delta')[]
   const hasPulse = tools_enabled.includes('pulse')
   const hasDelta = tools_enabled.includes('delta')
+  const hasActiveLink = !!linkResult.data
+  const useFastPath = hasDenormalizedStats(team)
 
   // Pulse stats
-  let pulseStats = null
+  let pulseStats: UnifiedTeam['pulse'] = null
   if (hasPulse) {
-    const { count: participantCount } = await supabase
-      .from('participants')
-      .select('*', { count: 'exact', head: true })
-      .eq('team_id', team.id)
-
-    const { count: todayEntries } = await supabase
-      .from('mood_entries')
-      .select('*', { count: 'exact', head: true })
-      .eq('team_id', team.id)
-      .eq('entry_date', new Date().toISOString().split('T')[0])
-
-    // Get current 7-day average
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    const { data: recentMoods } = await supabase
-      .from('mood_entries')
-      .select('mood')
-      .eq('team_id', team.id)
-      .gte('entry_date', sevenDaysAgo.toISOString().split('T')[0])
-
-    const avgScore = recentMoods && recentMoods.length > 0
-      ? recentMoods.reduce((sum, m) => sum + m.mood, 0) / recentMoods.length
-      : null
-
-    // Get previous 7-day average (day 8-14) for trend calculation
-    const fourteenDaysAgo = new Date()
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
-    const { data: previousMoods } = await supabase
-      .from('mood_entries')
-      .select('mood')
-      .eq('team_id', team.id)
-      .gte('entry_date', fourteenDaysAgo.toISOString().split('T')[0])
-      .lt('entry_date', sevenDaysAgo.toISOString().split('T')[0])
-
-    const previousAvgScore = previousMoods && previousMoods.length > 0
-      ? previousMoods.reduce((sum, m) => sum + m.mood, 0) / previousMoods.length
-      : null
-
-    const trend = calculateTrend(avgScore, previousAvgScore)
-
-    const { data: activeLink } = await supabase
-      .from('invite_links')
-      .select('id')
-      .eq('team_id', team.id)
-      .eq('is_active', true)
-      .single()
-
-    pulseStats = {
-      enabled: true,
-      participant_count: participantCount || 0,
-      today_entries: todayEntries || 0,
-      average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
-      trend,
-      share_link: activeLink ? team.slug : null,
+    if (useFastPath) {
+      // Fast path: use denormalized columns
+      const avgScore = team.pulse_avg_score ? parseFloat(String(team.pulse_avg_score)) : null
+      const prevAvgScore = team.pulse_prev_avg_score ? parseFloat(String(team.pulse_prev_avg_score)) : null
+      pulseStats = {
+        enabled: true,
+        participant_count: (team.pulse_participant_count as number) || 0,
+        today_entries: (team.pulse_today_entries as number) || 0,
+        average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
+        trend: calculateTrend(avgScore, prevAvgScore),
+        share_link: hasActiveLink ? team.slug : null,
+      }
+    } else {
+      // Fallback: compute on the fly (slow)
+      pulseStats = await computePulseStatsFallback(supabase, team.id, team.slug, hasActiveLink)
     }
   }
 
-  // Delta stats (use admin client to bypass RLS on delta tables)
-  let deltaStats = null
+  // Delta stats
+  let deltaStats: UnifiedTeam['delta'] = null
   if (hasDelta) {
-    const adminSupabase = await createAdminClient()
-    const { data: sessions } = await adminSupabase
-      .from('delta_sessions')
-      .select('id, status, created_at')
-      .eq('team_id', team.id)
-
-    const activeSessions = sessions?.filter(s => s.status === 'active').length || 0
-    const closedSessions = sessions?.filter(s => s.status === 'closed') || []
-
-    // Sort closed sessions by date (newest first)
-    const sortedClosed = closedSessions.sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
-
-    // Helper to calculate average score for a set of session IDs
-    const calculateSessionsAvg = async (sessionIds: string[]): Promise<number | null> => {
-      if (sessionIds.length === 0) return null
-      const { data: responses } = await adminSupabase
-        .from('delta_responses')
-        .select('answers')
-        .in('session_id', sessionIds)
-
-      if (!responses || responses.length === 0) return null
-      let totalScore = 0
-      let scoreCount = 0
-      for (const r of responses) {
-        const answers = r.answers as Record<string, number>
-        for (const score of Object.values(answers)) {
-          if (typeof score === 'number' && score >= 1 && score <= 5) {
-            totalScore += score
-            scoreCount++
-          }
-        }
+    if (useFastPath) {
+      // Fast path: use denormalized columns
+      const avgScore = team.delta_avg_score ? parseFloat(String(team.delta_avg_score)) : null
+      const prevAvgScore = team.delta_prev_avg_score ? parseFloat(String(team.delta_prev_avg_score)) : null
+      deltaStats = {
+        enabled: true,
+        total_sessions: (team.delta_total_sessions as number) || 0,
+        active_sessions: (team.delta_active_sessions as number) || 0,
+        closed_sessions: (team.delta_closed_sessions as number) || 0,
+        average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
+        trend: calculateTrend(avgScore, prevAvgScore),
+        last_session_date: (team.delta_last_session_at as string) || null,
       }
-      return scoreCount > 0 ? totalScore / scoreCount : null
-    }
-
-    // Calculate overall average score
-    const avgScore = await calculateSessionsAvg(sortedClosed.map(s => s.id))
-
-    // Calculate trend: compare last 2 sessions vs previous 2 sessions
-    let deltaTrend: 'up' | 'down' | 'stable' | null = null
-    if (sortedClosed.length >= 4) {
-      const recentIds = sortedClosed.slice(0, 2).map(s => s.id)
-      const olderIds = sortedClosed.slice(2, 4).map(s => s.id)
-      const recentAvg = await calculateSessionsAvg(recentIds)
-      const olderAvg = await calculateSessionsAvg(olderIds)
-      deltaTrend = calculateTrend(recentAvg, olderAvg)
-    } else if (sortedClosed.length >= 2) {
-      // With 2-3 sessions, compare last vs first
-      const recentIds = [sortedClosed[0].id]
-      const olderIds = [sortedClosed[sortedClosed.length - 1].id]
-      const recentAvg = await calculateSessionsAvg(recentIds)
-      const olderAvg = await calculateSessionsAvg(olderIds)
-      deltaTrend = calculateTrend(recentAvg, olderAvg)
-    }
-
-    const lastSession = sessions?.sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )[0]
-
-    deltaStats = {
-      enabled: true,
-      total_sessions: sessions?.length || 0,
-      active_sessions: activeSessions,
-      closed_sessions: closedSessions.length,
-      average_score: avgScore ? Math.round(avgScore * 10) / 10 : null,
-      trend: deltaTrend,
-      last_session_date: lastSession?.created_at || null,
+    } else {
+      // Fallback: compute on the fly (slow)
+      deltaStats = await computeDeltaStatsFallback(team.id)
     }
   }
 
