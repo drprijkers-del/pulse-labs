@@ -12,7 +12,7 @@ interface BacklogDisplayProps {
   releases: ReleaseNote[]
 }
 
-type Tab = 'exploring' | 'building' | 'done' | 'not_doing' | 'releases'
+type Tab = 'exploring' | 'building' | 'not_doing' | 'releases'
 type WishState = 'browsing' | 'form' | 'submitting' | 'success'
 
 export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
@@ -42,7 +42,6 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: 'exploring', label: 'Exploring', count: exploring.length },
     { id: 'building', label: 'Building', count: building.length },
-    { id: 'done', label: 'Done', count: done.length },
     { id: 'not_doing', label: 'Not doing', count: notDoing.length },
     { id: 'releases', label: 'Releases', count: releases.length },
   ]
@@ -158,7 +157,7 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
   }
 
   const renderReleases = () => {
-    if (releases.length === 0) {
+    if (releases.length === 0 && done.length === 0) {
       return (
         <Card>
           <CardContent className="py-8 text-center">
@@ -168,10 +167,23 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
       )
     }
 
+    // Group done items by version
+    const doneByVersion: Record<string, BacklogItem[]> = {}
+    done.forEach(item => {
+      const version = extractVersion(item.our_take_en)
+      if (version) {
+        const versionKey = version.replace('v', '')
+        if (!doneByVersion[versionKey]) doneByVersion[versionKey] = []
+        doneByVersion[versionKey].push(item)
+      }
+    })
+
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {releases.map((release) => {
           const productBadge = getProductBadge(release.product)
+          const releaseDoneItems = doneByVersion[release.version] || []
+
           return (
             <Card key={release.id}>
               <CardContent className="py-4">
@@ -194,6 +206,8 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
                 {release.description_en && (
                   <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">{release.description_en}</p>
                 )}
+
+                {/* Release note changes */}
                 {release.changes && release.changes.length > 0 && (
                   <ul className="mt-3 space-y-1">
                     {release.changes.map((change, i) => (
@@ -203,6 +217,28 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
                       </li>
                     ))}
                   </ul>
+                )}
+
+                {/* Completed backlog items for this release */}
+                {releaseDoneItems.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-stone-200 dark:border-stone-700">
+                    <p className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-2">
+                      Completed from backlog
+                    </p>
+                    <ul className="space-y-1">
+                      {releaseDoneItems.map((item) => (
+                        <li key={item.id} className="text-sm text-stone-600 dark:text-stone-300 flex items-start gap-2">
+                          <span className="text-cyan-500 dark:text-cyan-400 mt-0.5">✓</span>
+                          <span>
+                            {item.title_en}
+                            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${getCategoryColor(item.category)}`}>
+                              {getCategoryLabel(item.category)}
+                            </span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -363,60 +399,6 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
             Decided to build. Coming soon to Pulse.
           </p>
           {renderItems(building)}
-        </div>
-      )}
-
-      {activeTab === 'done' && (
-        <div>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
-            Completed and released. Check Releases for details.
-          </p>
-          {done.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <p className="text-stone-400 dark:text-stone-500">No items yet</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {done.map((item) => {
-                const productBadge = getProductBadge(item.product)
-                const version = extractVersion(item.our_take_en)
-                return (
-                  <Card key={item.id}>
-                    <CardContent className="py-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex flex-col gap-1.5">
-                          <span className={`text-xs px-2 py-0.5 rounded border ${productBadge.color}`}>
-                            {productBadge.label}
-                          </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(item.category)}`}>
-                            {getCategoryLabel(item.category)}
-                          </span>
-                          {version && (
-                            <span className="text-xs font-mono bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 px-2 py-1 rounded">
-                              {version}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-stone-900 dark:text-stone-100">{item.title_en}</h3>
-                          {item.source_en && (
-                            <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">{item.source_en}</p>
-                          )}
-                          {item.our_take_en && (
-                            <p className="text-sm text-stone-600 dark:text-stone-300 mt-2 italic">
-                              &ldquo;{item.our_take_en}&rdquo;
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          )}
         </div>
       )}
 
