@@ -17,6 +17,37 @@ interface CeremonyLevelProps {
   compact?: boolean
 }
 
+// Level colors configuration
+const levelColors = {
+  shu: {
+    bg: 'bg-amber-100 dark:bg-amber-900/30',
+    bgSolid: 'bg-amber-500',
+    border: 'border-amber-300 dark:border-amber-700',
+    text: 'text-amber-700 dark:text-amber-400',
+    kanji: 'text-amber-600 dark:text-amber-400',
+    progress: 'bg-amber-500',
+    glow: 'shadow-amber-200 dark:shadow-amber-900/50',
+  },
+  ha: {
+    bg: 'bg-cyan-100 dark:bg-cyan-900/30',
+    bgSolid: 'bg-cyan-500',
+    border: 'border-cyan-300 dark:border-cyan-700',
+    text: 'text-cyan-700 dark:text-cyan-400',
+    kanji: 'text-cyan-600 dark:text-cyan-400',
+    progress: 'bg-cyan-500',
+    glow: 'shadow-cyan-200 dark:shadow-cyan-900/50',
+  },
+  ri: {
+    bg: 'bg-purple-100 dark:bg-purple-900/30',
+    bgSolid: 'bg-purple-500',
+    border: 'border-purple-300 dark:border-purple-700',
+    text: 'text-purple-700 dark:text-purple-400',
+    kanji: 'text-purple-600 dark:text-purple-400',
+    progress: 'bg-purple-500',
+    glow: 'shadow-purple-200 dark:shadow-purple-900/50',
+  },
+}
+
 export function CeremonyLevelDisplay({
   level,
   progress,
@@ -24,8 +55,7 @@ export function CeremonyLevelDisplay({
   compact = false,
 }: CeremonyLevelProps) {
   const t = useTranslation()
-  const levelInfo = getLevelInfo(level)
-  const levelIndex = CEREMONY_LEVELS.findIndex(l => l.id === level)
+  const currentLevelIndex = CEREMONY_LEVELS.findIndex(l => l.id === level)
   const isMaxLevel = level === 'ri'
 
   // Get unlock requirements for next level
@@ -36,35 +66,11 @@ export function CeremonyLevelDisplay({
     ? Math.round((metRequirements / totalRequirements) * 100)
     : 100
 
-  // Level colors
-  const levelColors = {
-    shu: {
-      bg: 'bg-amber-100 dark:bg-amber-900/30',
-      border: 'border-amber-300 dark:border-amber-700',
-      text: 'text-amber-700 dark:text-amber-400',
-      kanji: 'text-amber-600 dark:text-amber-400',
-      progress: 'bg-amber-500',
-    },
-    ha: {
-      bg: 'bg-cyan-100 dark:bg-cyan-900/30',
-      border: 'border-cyan-300 dark:border-cyan-700',
-      text: 'text-cyan-700 dark:text-cyan-400',
-      kanji: 'text-cyan-600 dark:text-cyan-400',
-      progress: 'bg-cyan-500',
-    },
-    ri: {
-      bg: 'bg-purple-100 dark:bg-purple-900/30',
-      border: 'border-purple-300 dark:border-purple-700',
-      text: 'text-purple-700 dark:text-purple-400',
-      kanji: 'text-purple-600 dark:text-purple-400',
-      progress: 'bg-purple-500',
-    },
-  }
-
   const colors = levelColors[level]
 
   // Compact version - just a badge
   if (compact) {
+    const levelInfo = getLevelInfo(level)
     return (
       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${colors.bg} ${colors.border} border`}>
         <span className={`text-lg font-bold ${colors.kanji}`}>{levelInfo.kanji}</span>
@@ -74,114 +80,202 @@ export function CeremonyLevelDisplay({
   }
 
   return (
-    <div className={`rounded-xl ${colors.border} border ${colors.bg} p-4 sm:p-5`}>
-      {/* Level header */}
-      <div className="flex items-start gap-4">
-        {/* Kanji character */}
-        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white dark:bg-stone-800 border ${colors.border} flex items-center justify-center`}>
-          <span className={`text-3xl sm:text-4xl font-bold ${colors.kanji}`}>
-            {levelInfo.kanji}
-          </span>
-        </div>
-
-        {/* Level info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h3 className={`text-lg font-bold ${colors.text}`}>
-              {levelInfo.label}
-            </h3>
-            <span className="text-sm text-stone-500 dark:text-stone-400">
-              {levelInfo.subtitle}
-            </span>
-          </div>
-          <p className="text-sm text-stone-600 dark:text-stone-400">
-            {levelInfo.description}
-          </p>
-
-          {/* Risk indicator */}
+    <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+      {/* Level Roadmap - All 3 levels visible */}
+      <div className="p-4 sm:p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-stone-900 dark:text-stone-100">
+            Ceremony Mastery
+          </h3>
           {risk && risk.state !== 'none' && (
-            <div className="mt-2 flex items-center gap-1.5 text-sm">
-              <span className="text-amber-500">⚠</span>
-              <span className="text-amber-700 dark:text-amber-400">
-                {risk.reason || t('levelRiskGeneric')}
-              </span>
+            <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400">
+              <span>⚠</span>
+              <span>{risk.reason || t('levelRiskGeneric')}</span>
             </div>
           )}
         </div>
 
-        {/* Level progress indicator (dots) */}
-        <div className="flex gap-1.5">
-          {CEREMONY_LEVELS.map((l, i) => (
+        {/* Three Level Cards */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {CEREMONY_LEVELS.map((levelInfo, index) => {
+            const isUnlocked = index <= currentLevelIndex
+            const isCurrent = levelInfo.id === level
+            const isNext = index === currentLevelIndex + 1
+            const lColors = levelColors[levelInfo.id]
+
+            return (
+              <div
+                key={levelInfo.id}
+                className={`relative rounded-xl p-3 sm:p-4 transition-all ${
+                  isCurrent
+                    ? `${lColors.bg} ${lColors.border} border-2 shadow-lg ${lColors.glow}`
+                    : isUnlocked
+                    ? `${lColors.bg} ${lColors.border} border opacity-60`
+                    : 'bg-stone-100 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 opacity-50'
+                }`}
+              >
+                {/* Lock icon for locked levels */}
+                {!isUnlocked && (
+                  <div className="absolute top-2 right-2">
+                    <svg className="w-4 h-4 text-stone-400 dark:text-stone-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+
+                {/* Current level indicator */}
+                {isCurrent && (
+                  <div className="absolute -top-1 -right-1">
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-full ${lColors.bgSolid} text-white text-xs font-bold shadow-md`}>
+                      ✓
+                    </span>
+                  </div>
+                )}
+
+                {/* Kanji character */}
+                <div className={`text-2xl sm:text-3xl font-bold mb-1 ${
+                  isUnlocked ? lColors.kanji : 'text-stone-400 dark:text-stone-500'
+                }`}>
+                  {levelInfo.kanji}
+                </div>
+
+                {/* Level name */}
+                <div className={`font-semibold text-sm sm:text-base ${
+                  isUnlocked ? lColors.text : 'text-stone-400 dark:text-stone-500'
+                }`}>
+                  {levelInfo.label}
+                </div>
+
+                {/* Subtitle */}
+                <div className={`text-xs mt-0.5 ${
+                  isUnlocked ? 'text-stone-600 dark:text-stone-400' : 'text-stone-400 dark:text-stone-500'
+                }`}>
+                  {levelInfo.subtitle}
+                </div>
+
+                {/* "Next" badge for next level */}
+                {isNext && (
+                  <div className="mt-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-200 dark:bg-stone-600 text-stone-600 dark:text-stone-300">
+                      Next
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Progress connector line */}
+        <div className="relative mt-4 mb-2">
+          <div className="h-2 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
             <div
-              key={l.id}
-              className={`w-3 h-3 rounded-full ${
-                i <= levelIndex
-                  ? levelColors[l.id].progress
-                  : 'bg-stone-200 dark:bg-stone-700'
-              }`}
+              className={`h-full ${colors.progress} transition-all duration-700`}
+              style={{ width: `${((currentLevelIndex + (progressPercent / 100)) / 3) * 100}%` }}
             />
-          ))}
+          </div>
+          {/* Level markers on the progress bar */}
+          <div className="absolute top-0 left-0 right-0 h-2 flex justify-between px-[16.67%]">
+            {[0, 1].map((i) => (
+              <div
+                key={i}
+                className={`w-0.5 h-full ${
+                  i < currentLevelIndex ? 'bg-white/50' : 'bg-stone-300 dark:bg-stone-600'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Progress to next level */}
-      {!isMaxLevel && progress && (
-        <div className="mt-4 pt-4 border-t border-stone-200 dark:border-stone-700">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
-              {t('levelProgressTitle')}
+      {/* Requirements Section */}
+      {!isMaxLevel && (
+        <div className="border-t border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className={`text-lg font-bold ${levelColors[CEREMONY_LEVELS[currentLevelIndex + 1]?.id || 'ha'].kanji}`}>
+                {CEREMONY_LEVELS[currentLevelIndex + 1]?.kanji}
+              </span>
+              <span className="font-medium text-stone-900 dark:text-stone-100">
+                Unlock {CEREMONY_LEVELS[currentLevelIndex + 1]?.label}
+              </span>
+            </div>
+            <span className="text-sm font-medium text-stone-500 dark:text-stone-400">
+              {metRequirements}/{totalRequirements} complete
             </span>
-            <span className="text-sm text-stone-500 dark:text-stone-400">
-              {metRequirements}/{totalRequirements}
-            </span>
-          </div>
-
-          {/* Progress bar */}
-          <div className="h-2 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden mb-3">
-            <div
-              className={`h-full ${colors.progress} transition-all duration-500`}
-              style={{ width: `${progressPercent}%` }}
-            />
           </div>
 
           {/* Requirements checklist */}
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="space-y-2">
             {requirements.map((req) => (
               <div
                 key={req.key}
-                className={`flex items-center gap-2 text-sm ${
+                className={`flex items-center justify-between p-2.5 rounded-lg ${
                   req.met
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-stone-500 dark:text-stone-400'
+                    ? 'bg-green-50 dark:bg-green-900/20'
+                    : 'bg-white dark:bg-stone-700/50'
                 }`}
               >
-                {req.met ? (
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                  </svg>
-                )}
-                <span>{req.label}</span>
-                {!req.met && req.current !== undefined && (
-                  <span className="text-stone-400 dark:text-stone-500">
-                    ({req.current})
+                <div className="flex items-center gap-2.5">
+                  {req.met ? (
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded-full border-2 border-stone-300 dark:border-stone-500" />
+                  )}
+                  <span className={`text-sm ${
+                    req.met
+                      ? 'text-green-700 dark:text-green-400 font-medium'
+                      : 'text-stone-700 dark:text-stone-300'
+                  }`}>
+                    {req.label}
                   </span>
+                </div>
+                {!req.met && req.current !== undefined && (
+                  <span className="text-sm font-medium text-stone-500 dark:text-stone-400">
+                    {req.current} / {req.required}
+                  </span>
+                )}
+                {req.met && (
+                  <span className="text-xs font-medium text-green-600 dark:text-green-400">Done</span>
                 )}
               </div>
             ))}
           </div>
+
+          {/* Encouragement message */}
+          <div className="mt-4 text-center">
+            {progressPercent === 0 ? (
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Start running ceremonies to unlock the next level!
+              </p>
+            ) : progressPercent < 100 ? (
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Keep going! You&apos;re {progressPercent}% of the way there.
+              </p>
+            ) : (
+              <p className={`text-sm font-medium ${levelColors[CEREMONY_LEVELS[currentLevelIndex + 1]?.id || 'ha'].text}`}>
+                🎉 All requirements met! Level up coming soon...
+              </p>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Max level message */}
+      {/* Max level celebration */}
       {isMaxLevel && (
-        <div className="mt-4 pt-4 border-t border-stone-200 dark:border-stone-700">
-          <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
-            <span className="text-lg">✦</span>
-            <span>{t('levelMaxReached')}</span>
+        <div className="border-t border-purple-200 dark:border-purple-800 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 sm:p-5">
+          <div className="flex items-center gap-3 text-purple-700 dark:text-purple-300">
+            <span className="text-2xl">✦</span>
+            <div>
+              <div className="font-semibold">Mastery Achieved</div>
+              <div className="text-sm text-purple-600 dark:text-purple-400">
+                {t('levelMaxReached')}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -204,5 +298,38 @@ export function QuestionDepthBadge({ level }: { level: CeremonyLevel }) {
       <span className="font-bold">{levelInfo.kanji}</span>
       {levelInfo.questionDepth}
     </span>
+  )
+}
+
+// Small level indicator for session cards
+export function SessionLevelHint({
+  currentLevel,
+  sessionScore,
+  requiredScore,
+}: {
+  currentLevel: CeremonyLevel
+  sessionScore?: number | null
+  requiredScore: number
+}) {
+  if (!sessionScore) return null
+
+  const isAboveTarget = sessionScore >= requiredScore
+  const nextLevel = currentLevel === 'shu' ? 'ha' : currentLevel === 'ha' ? 'ri' : null
+
+  if (!nextLevel) return null
+
+  return (
+    <div className={`text-xs ${isAboveTarget ? 'text-green-600 dark:text-green-400' : 'text-stone-400 dark:text-stone-500'}`}>
+      {isAboveTarget ? (
+        <span className="flex items-center gap-1">
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          Meets {CEREMONY_LEVELS.find(l => l.id === nextLevel)?.label} target
+        </span>
+      ) : (
+        <span>Need ≥{requiredScore} for {CEREMONY_LEVELS.find(l => l.id === nextLevel)?.label}</span>
+      )}
+    </div>
   )
 }
