@@ -34,14 +34,14 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  // Determine active mode from URL
-  const currentTab = searchParams.get('tab') as NavMode | null
-  const activeMode: NavMode | null = currentTab && ['vibe', 'ceremonies', 'feedback', 'coach', 'modules', 'settings'].includes(currentTab)
-    ? currentTab as NavMode
-    : null
-
   // Check if we're on a team detail page
   const isOnTeamPage = pathname.startsWith('/teams/') && pathname !== '/teams' && !pathname.endsWith('/new')
+
+  // Determine active mode from URL (default to 'vibe' on team pages)
+  const currentTab = searchParams.get('tab') as NavMode | null
+  const activeMode: NavMode = currentTab && ['vibe', 'ceremonies', 'feedback', 'coach', 'modules', 'settings'].includes(currentTab)
+    ? currentTab as NavMode
+    : isOnTeamPage ? 'vibe' : 'vibe'
 
   useEffect(() => {
     setMounted(true)
