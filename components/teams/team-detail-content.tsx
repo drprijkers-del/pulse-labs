@@ -144,14 +144,6 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
     URL.revokeObjectURL(url)
   }
 
-  const tabs: { key: TabType; label: string; premium?: boolean }[] = [
-    { key: 'vibe', label: t('teamsDetailVibe') },
-    { key: 'ceremonies', label: t('teamsDetailCeremonies') },
-    { key: 'feedback', label: t('feedbackTitle') },
-    { key: 'coach', label: t('coachQuestionsTab') },
-    { key: 'modules', label: t('modulePremium'), premium: true },
-    { key: 'settings', label: t('teamsDetailSettings') },
-  ]
 
   return (
     <div className="space-y-8">
@@ -200,31 +192,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         hasClosedSessions={(team.ceremonies?.closed_sessions || 0) > 0}
       />
 
-      {/* Tabs */}
-      <div className="border-b border-stone-200 dark:border-stone-700 overflow-x-auto">
-        <div className="flex gap-4 sm:gap-6 min-w-max">
-          {tabs.map(({ key, label, premium }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === key
-                  ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-                  : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
-              }`}
-            >
-              {label}
-              {premium && (
-                <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded">
-                  PRO
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tab content */}
+      {/* Section content (navigation is in the global header) */}
       {activeTab === 'vibe' && (
         <div className="space-y-6">
           {team.vibe ? (
