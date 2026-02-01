@@ -25,7 +25,7 @@ interface BacklogManagementContentProps {
 }
 
 type Tab = 'backlog' | 'releases'
-type KanbanColumn = 'review' | 'exploring' | 'building' | 'not_doing'
+type KanbanColumn = 'review' | 'exploring' | 'building' | 'done' | 'not_doing'
 
 export function BacklogManagementContent({ backlogItems, releaseNotes }: BacklogManagementContentProps) {
   const router = useRouter()
@@ -38,6 +38,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
   const [deleteReleaseId, setDeleteReleaseId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [formStatus, setFormStatus] = useState<BacklogStatus>('review')
+  const [formDecision, setFormDecision] = useState<BacklogDecision | ''>('')
   const [draggedItem, setDraggedItem] = useState<BacklogItem | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<KanbanColumn | null>(null)
 
@@ -46,13 +47,22 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
     review: backlogItems.filter(i => i.status === 'review'),
     exploring: backlogItems.filter(i => i.status === 'exploring'),
     building: backlogItems.filter(i => i.status === 'decided' && i.decision === 'building'),
+    done: backlogItems.filter(i => i.status === 'decided' && i.decision === 'done'),
     not_doing: backlogItems.filter(i => i.status === 'decided' && i.decision === 'not_doing'),
+  }
+
+  // Extract version from rationale (format: "Released in vX.X.X - ...")
+  function extractVersion(rationale: string | null): string | null {
+    if (!rationale) return null
+    const match = rationale.match(/^Released in (v[\d.]+)/)
+    return match ? match[1] : null
   }
 
   const columnConfig: Record<KanbanColumn, { title: string; color: string; bgColor: string }> = {
     review: { title: 'Under Review', color: 'text-yellow-400', bgColor: 'bg-yellow-500/10 border-yellow-500/30' },
     exploring: { title: 'Exploring', color: 'text-blue-400', bgColor: 'bg-blue-500/10 border-blue-500/30' },
     building: { title: 'Building', color: 'text-green-400', bgColor: 'bg-green-500/10 border-green-500/30' },
+    done: { title: 'Done', color: 'text-cyan-400', bgColor: 'bg-cyan-500/10 border-cyan-500/30' },
     not_doing: { title: 'Not Doing', color: 'text-red-400', bgColor: 'bg-red-500/10 border-red-500/30' },
   }
 
@@ -69,7 +79,9 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
       newStatus = 'exploring'
     } else {
       newStatus = 'decided'
-      newDecision = targetColumn === 'building' ? 'building' : 'not_doing'
+      if (targetColumn === 'building') newDecision = 'building'
+      else if (targetColumn === 'done') newDecision = 'done'
+      else newDecision = 'not_doing'
     }
 
     // Skip if no change
@@ -88,7 +100,16 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
     if (newDecision) formData.set('decision', newDecision)
     formData.set('title_en', draggedItem.title_en)
     formData.set('source_en', draggedItem.source_en || '')
-    formData.set('our_take_en', draggedItem.our_take_en || '')
+
+    // If moving to Done, add release version to rationale
+    let ourTake = draggedItem.our_take_en || ''
+    if (targetColumn === 'done' && releaseNotes.length > 0) {
+      const latestRelease = releaseNotes[0]
+      if (!ourTake.startsWith('Released in')) {
+        ourTake = `Released in v${latestRelease.version} - ${ourTake}`.trim()
+      }
+    }
+    formData.set('our_take_en', ourTake)
     formData.set('reviewed_at', draggedItem.reviewed_at || new Date().toISOString().split('T')[0])
 
     await updateBacklogItem(draggedItem.id, formData)
@@ -103,6 +124,17 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
     e.preventDefault()
     setLoading(true)
     const formData = new FormData(e.currentTarget)
+
+    // If decision is 'done', prepend release version to our_take
+    const decision = formData.get('decision')
+    const releaseVersion = formData.get('release_version')
+    if (decision === 'done' && releaseVersion) {
+      let ourTake = (formData.get('our_take_en') as string) || ''
+      // Remove any existing "Released in" prefix
+      ourTake = ourTake.replace(/^Released in v[\d.]+ - ?/, '')
+      ourTake = `Released in v${releaseVersion}${ourTake ? ' - ' + ourTake : ''}`
+      formData.set('our_take_en', ourTake)
+    }
 
     let result: { success: boolean; error?: string; id?: string }
     if (editingBacklog) {
@@ -120,6 +152,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
 
     setShowBacklogForm(false)
     setEditingBacklog(null)
+    setFormDecision('')
     router.refresh()
   }
 
@@ -255,7 +288,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
             <div className="flex justify-between items-center mb-4">
               <p className="text-sm text-stone-500">Drag items between columns to change status</p>
               <button
-                onClick={() => { setEditingBacklog(null); setFormStatus('review'); setShowBacklogForm(true) }}
+                onClick={() => { setEditingBacklog(null); setFormStatus('review'); setFormDecision(''); setShowBacklogForm(true) }}
                 className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-medium"
               >
                 + New item
@@ -264,7 +297,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
 
             {/* Edit Form Modal */}
             {showBacklogForm && (
-              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => { setShowBacklogForm(false); setEditingBacklog(null) }}>
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => { setShowBacklogForm(false); setEditingBacklog(null); setFormDecision('') }}>
                 <div className="bg-stone-800 border border-stone-700 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <h2 className="font-medium text-white mb-4 text-lg">
                     {editingBacklog ? 'Edit item' : 'New backlog item'}
@@ -318,11 +351,29 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
                           <label className="block text-sm font-medium text-stone-300 mb-1">Decision</label>
                           <select
                             name="decision"
-                            defaultValue={editingBacklog?.decision || 'building'}
+                            value={formDecision || editingBacklog?.decision || 'building'}
+                            onChange={(e) => setFormDecision(e.target.value as BacklogDecision)}
                             className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
                           >
                             <option value="building">Building</option>
+                            <option value="done">Done (Released)</option>
                             <option value="not_doing">Not doing</option>
+                          </select>
+                        </div>
+                      )}
+                      {formStatus === 'decided' && (formDecision === 'done' || (!formDecision && editingBacklog?.decision === 'done')) && (
+                        <div>
+                          <label className="block text-sm font-medium text-stone-300 mb-1">Release Version</label>
+                          <select
+                            name="release_version"
+                            defaultValue={extractVersion(editingBacklog?.our_take_en || null) || (releaseNotes[0]?.version || '')}
+                            className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
+                          >
+                            {releaseNotes.map(release => (
+                              <option key={release.id} value={release.version}>
+                                v{release.version} - {release.title_en}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       )}
@@ -374,7 +425,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
                     <div className="flex gap-2 justify-end pt-2">
                       <button
                         type="button"
-                        onClick={() => { setShowBacklogForm(false); setEditingBacklog(null); setFormStatus('review') }}
+                        onClick={() => { setShowBacklogForm(false); setEditingBacklog(null); setFormStatus('review'); setFormDecision('') }}
                         className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-lg text-sm"
                       >
                         Cancel
@@ -393,8 +444,8 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
             )}
 
             {/* Kanban Board */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {(['review', 'exploring', 'building', 'not_doing'] as KanbanColumn[]).map(column => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {(['review', 'exploring', 'building', 'done', 'not_doing'] as KanbanColumn[]).map(column => (
                 <div
                   key={column}
                   className={`rounded-xl border-2 transition-colors ${
@@ -425,40 +476,48 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
                         Drop items here
                       </p>
                     ) : (
-                      itemsByColumn[column].map(item => (
-                        <div
-                          key={item.id}
-                          draggable
-                          onDragStart={() => setDraggedItem(item)}
-                          onDragEnd={() => { setDraggedItem(null); setDragOverColumn(null) }}
-                          onClick={() => { setEditingBacklog(item); setFormStatus(item.status); setShowBacklogForm(true) }}
-                          className={`bg-stone-800 border border-stone-700 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-stone-600 transition-all ${
-                            draggedItem?.id === item.id ? 'opacity-50' : ''
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5 flex-wrap mb-2">
-                            {getProductBadge(item.product)}
-                            {getCategoryBadge(item.category)}
+                      itemsByColumn[column].map(item => {
+                        const version = extractVersion(item.our_take_en)
+                        return (
+                          <div
+                            key={item.id}
+                            draggable
+                            onDragStart={() => setDraggedItem(item)}
+                            onDragEnd={() => { setDraggedItem(null); setDragOverColumn(null) }}
+                            onClick={() => { setEditingBacklog(item); setFormStatus(item.status); setFormDecision(item.decision || ''); setShowBacklogForm(true) }}
+                            className={`bg-stone-800 border border-stone-700 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-stone-600 transition-all ${
+                              draggedItem?.id === item.id ? 'opacity-50' : ''
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                              {getProductBadge(item.product)}
+                              {getCategoryBadge(item.category)}
+                              {version && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-cyan-900/50 text-cyan-300">
+                                  {version}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm font-medium text-white line-clamp-2">{item.title_en}</p>
+                            {item.source_en && (
+                              <p className="text-[10px] text-stone-500 mt-1.5 line-clamp-1">
+                                {item.source_en}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-end mt-2 pt-2 border-t border-stone-700/50">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setDeleteBacklogId(item.id) }}
+                                className="p-1 text-stone-500 hover:text-red-400 transition-colors"
+                                title="Delete"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
-                          <p className="text-sm font-medium text-white line-clamp-2">{item.title_en}</p>
-                          {item.source_en && (
-                            <p className="text-[10px] text-stone-500 mt-1.5 line-clamp-1">
-                              {item.source_en}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-end mt-2 pt-2 border-t border-stone-700/50">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setDeleteBacklogId(item.id) }}
-                              className="p-1 text-stone-500 hover:text-red-400 transition-colors"
-                              title="Delete"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      ))
+                        )
+                      })
                     )}
                   </div>
                 </div>

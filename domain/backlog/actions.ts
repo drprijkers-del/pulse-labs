@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache'
 export type ProductType = 'delta' | 'pulse' | 'shared'
 export type BacklogCategory = 'ux' | 'statements' | 'analytics' | 'integration' | 'features'
 export type BacklogStatus = 'review' | 'exploring' | 'decided'
-export type BacklogDecision = 'building' | 'not_doing'
+export type BacklogDecision = 'building' | 'not_doing' | 'done'
 
 export interface BacklogItem {
   id: string
