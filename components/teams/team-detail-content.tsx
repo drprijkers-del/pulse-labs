@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { UnifiedTeam, enableTool, disableTool, deleteTeam, exportPulseData } from '@/domain/teams/actions'
 import { Button } from '@/components/ui/button'
-import { useTranslation, TranslationFunction } from '@/lib/i18n/context'
+import { useTranslation } from '@/lib/i18n/context'
 import { VibeMetrics } from '@/components/admin/vibe-metrics'
 import { ShareLinkSection } from '@/components/admin/share-link-section'
 import { GettingStartedChecklist } from '@/components/teams/getting-started-checklist'
@@ -154,38 +154,29 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Team header */}
-      <div>
-        <div className="flex flex-wrap items-center gap-3 mb-2">
+    <div className="space-y-8">
+      {/* ═══════════════════════════════════════════════════════════════════
+          ZONE 1: TEAM CONTEXT & SECTION DESCRIPTION
+          ═══════════════════════════════════════════════════════════════════ */}
+      <header className="space-y-1">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{team.name}</h1>
           {team.needs_attention && (
             <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
               {t('teamsNeedsAttention')}
             </span>
           )}
-          {/* Team Maturity Badge */}
-          <TeamMaturityBadge
-            sessionsCount={(team.ceremonies?.total_sessions || 0) + (vibeMetrics?.maturity?.daysOfData || 0)}
-            avgScore={team.vibe?.average_score || team.ceremonies?.average_score || 0}
-            t={t}
-          />
         </div>
-        {team.description && (
-          <p className="text-stone-600 dark:text-stone-400">{team.description}</p>
-        )}
-      </div>
+        {/* Section context description */}
+        <p className="text-sm text-stone-500 dark:text-stone-400 max-w-2xl">
+          {t('teamDetailContext')}
+        </p>
+      </header>
 
-      {/* Getting Started Checklist */}
-      <GettingStartedChecklist
-        teamId={team.id}
-        teamSlug={team.slug}
-        hasPulseEntries={(team.vibe?.participant_count || 0) > 0}
-        hasCeremonySessions={(team.ceremonies?.total_sessions || 0) > 0}
-        hasClosedSessions={(team.ceremonies?.closed_sessions || 0) > 0}
-      />
-
-      {/* Overall Signal - shows combined health score */}
+      {/* ═══════════════════════════════════════════════════════════════════
+          ZONE 2: PRIMARY STATE (VISUALLY DOMINANT)
+          Current signals, trend, and reliability at a glance
+          ═══════════════════════════════════════════════════════════════════ */}
       <OverallSignal
         vibeScore={team.vibe?.average_score || null}
         ceremoniesScore={team.ceremonies?.average_score || null}
@@ -195,6 +186,18 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
           return effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
         })()}
         ceremoniesSessions={team.ceremonies?.total_sessions || 0}
+      />
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          ZONE 3: SIGNAL CONFIDENCE & ONBOARDING
+          Data maturity, baseline status, getting started guidance
+          ═══════════════════════════════════════════════════════════════════ */}
+      <GettingStartedChecklist
+        teamId={team.id}
+        teamSlug={team.slug}
+        hasPulseEntries={(team.vibe?.participant_count || 0) > 0}
+        hasCeremonySessions={(team.ceremonies?.total_sessions || 0) > 0}
+        hasClosedSessions={(team.ceremonies?.closed_sessions || 0) > 0}
       />
 
       {/* Tabs */}
@@ -708,145 +711,6 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
           onClose={() => setShowCompare(false)}
         />
       )}
-    </div>
-  )
-}
-
-// Team Maturity Badge Component with Gamification
-function TeamMaturityBadge({
-  sessionsCount,
-  avgScore,
-  t
-}: {
-  sessionsCount: number
-  avgScore: number
-  t: TranslationFunction
-}) {
-  // Calculate maturity level based on activity and scores
-  let level: 'basic' | 'medium' | 'mature' = 'basic'
-  let progress = 0
-  let nextLevelSessions = 5
-
-  if (sessionsCount >= 20 && avgScore >= 3.5) {
-    level = 'mature'
-    progress = 100
-    nextLevelSessions = 0
-  } else if (sessionsCount >= 5) {
-    level = 'medium'
-    progress = Math.min(100, ((sessionsCount - 5) / 15) * 100)
-    nextLevelSessions = 20 - sessionsCount
-  } else {
-    level = 'basic'
-    progress = (sessionsCount / 5) * 100
-    nextLevelSessions = 5 - sessionsCount
-  }
-
-  const levels = [
-    { key: 'basic', icon: '🌱', label: t('maturityBasic'), isFree: true },
-    { key: 'medium', icon: '🌿', label: t('maturityMedium'), isFree: false },
-    { key: 'mature', icon: '🌳', label: t('maturityMature'), isFree: false },
-  ]
-
-  const currentLevelIndex = levels.findIndex(l => l.key === level)
-  const currentConfig = levels[currentLevelIndex]
-
-  const bgColor = level === 'basic'
-    ? 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
-    : level === 'medium'
-    ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400'
-    : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-
-  return (
-    <div className="group relative">
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full cursor-help ${bgColor}`}>
-        <span>{currentConfig.icon}</span>
-        {currentConfig.label}
-        {!currentConfig.isFree && (
-          <span className="ml-0.5 text-[8px] font-bold px-1 py-px bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded">PRO</span>
-        )}
-      </span>
-
-      {/* Expanded tooltip with all levels */}
-      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-20">
-        <div className="bg-stone-900 dark:bg-stone-950 text-white rounded-xl shadow-xl p-4 w-64">
-          <div className="font-semibold mb-3 flex items-center gap-2">
-            <span>🏆</span> Team Niveaus
-          </div>
-
-          {/* Level indicators */}
-          <div className="space-y-2 mb-3">
-            {levels.map((lvl, idx) => {
-              const isActive = idx === currentLevelIndex
-              const isPast = idx < currentLevelIndex
-              const isFuture = idx > currentLevelIndex
-
-              return (
-                <div
-                  key={lvl.key}
-                  className={`flex items-center gap-2 p-2 rounded-lg ${
-                    isActive ? 'bg-white/10 ring-1 ring-cyan-400' : ''
-                  }`}
-                >
-                  <span className={`text-lg ${isFuture ? 'opacity-40' : ''}`}>{lvl.icon}</span>
-                  <div className="flex-1">
-                    <div className={`text-sm font-medium ${isFuture ? 'opacity-50' : ''}`}>
-                      {lvl.label}
-                    </div>
-                  </div>
-                  {isPast && (
-                    <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  {isActive && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-cyan-500 text-white rounded font-medium">NU</span>
-                  )}
-                  {isFuture && !lvl.isFree && (
-                    <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Progress bar */}
-          {level !== 'mature' && (
-            <div className="mb-2">
-              <div className="flex justify-between text-[10px] text-stone-400 mb-1">
-                <span>{t('maturityProgress')}</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <div className="h-1.5 bg-stone-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-stone-400 mt-1">
-                Nog {nextLevelSessions} sessies naar volgend niveau
-              </p>
-            </div>
-          )}
-
-          {level === 'mature' && (
-            <div className="text-center py-2 text-green-400 text-xs font-medium">
-              ✨ {t('maturityMaxLevel')}
-            </div>
-          )}
-
-          {/* Upgrade hint */}
-          {level !== 'mature' && (
-            <a
-              href="mailto:expert@pinkpollos.nl?subject=Pulse Premium"
-              className="block mt-2 py-2 text-center text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
-            >
-              {t('maturityUpgrade')} →
-            </a>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
