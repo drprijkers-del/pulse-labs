@@ -9,7 +9,11 @@ const EMAIL_ALIASES: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, redirect: redirectTo } = await request.json()
+    const { email, password, redirect: redirectTo } = await request.json() as {
+      email?: string
+      password?: string
+      redirect?: string
+    }
     const finalRedirect = redirectTo || '/teams'
 
     if (!email || !password) {
