@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslation } from '@/lib/i18n/context'
+import { type CeremonyLevel, CEREMONY_LEVELS } from '@/domain/ceremonies/types'
 
 interface OverallSignalProps {
   teamName: string
@@ -9,6 +10,7 @@ interface OverallSignalProps {
   ceremoniesScore: number | null
   vibeParticipation: number // percentage 0-100
   ceremoniesSessions: number
+  ceremonyLevel?: CeremonyLevel | null
 }
 
 export function OverallSignal({
@@ -18,8 +20,17 @@ export function OverallSignal({
   ceremoniesScore,
   vibeParticipation,
   ceremoniesSessions,
+  ceremonyLevel,
 }: OverallSignalProps) {
   const t = useTranslation()
+
+  // Get ceremony level info
+  const levelInfo = ceremonyLevel ? CEREMONY_LEVELS.find(l => l.id === ceremonyLevel) : null
+  const levelColors = {
+    shu: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700' },
+    ha: { bg: 'bg-cyan-100 dark:bg-cyan-900/30', text: 'text-cyan-700 dark:text-cyan-400', border: 'border-cyan-300 dark:border-cyan-700' },
+    ri: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-700 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700' },
+  }
 
   // Calculate combined score (weighted average)
   // Vibe: 60% weight (daily signal), Ceremonies: 40% weight (periodic deep dive)
@@ -101,9 +112,17 @@ export function OverallSignal({
             {t('teamsNeedsAttention')}
           </span>
         )}
-        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${colors.bgLight} ${colors.text} ${colors.border} border`}>
-          {status.label}
-        </span>
+        {/* Show Shu-Ha-Ri level with subtitle instead of generic status */}
+        {levelInfo && ceremonyLevel ? (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${levelColors[ceremonyLevel].bg} ${levelColors[ceremonyLevel].text} ${levelColors[ceremonyLevel].border} border`}>
+            <span className="text-base font-bold">{levelInfo.kanji}</span>
+            <span>{levelInfo.subtitle}</span>
+          </span>
+        ) : (
+          <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${colors.bgLight} ${colors.text} ${colors.border} border`}>
+            {status.label}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -176,6 +195,20 @@ export function OverallSignal({
             </div>
             <div className="text-xs text-stone-500 dark:text-stone-400">{t('sessions')}</div>
           </div>
+          {/* Shu-Ha-Ri Level */}
+          {levelInfo && ceremonyLevel && (
+            <>
+              <div className="w-px h-8 bg-stone-200 dark:bg-stone-700" />
+              <div className={`px-3 py-1.5 rounded-lg border ${levelColors[ceremonyLevel].bg} ${levelColors[ceremonyLevel].border}`}>
+                <div className={`text-xl font-bold ${levelColors[ceremonyLevel].text}`}>
+                  {levelInfo.kanji}
+                </div>
+                <div className={`text-xs font-medium ${levelColors[ceremonyLevel].text}`}>
+                  {levelInfo.label}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

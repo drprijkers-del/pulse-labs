@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { submitResponse, hasResponded, getPublicSessionOutcome, PublicSessionOutcome } from '@/domain/ceremonies/actions'
 import { getStatements } from '@/domain/ceremonies/statements'
-import { CeremonyAngle, getAngleInfo, ResponseAnswers, Statement } from '@/domain/ceremonies/types'
+import { CeremonyAngle, CeremonyLevel, getAngleInfo, getLevelInfo, ResponseAnswers, Statement } from '@/domain/ceremonies/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/lib/i18n/context'
@@ -14,6 +14,7 @@ interface ParticipationContentProps {
   teamName: string
   angle: CeremonyAngle
   title: string | null
+  ceremonyLevel: CeremonyLevel
 }
 
 type ViewState = 'loading' | 'intro' | 'statements' | 'submitting' | 'done' | 'already_responded' | 'closed_results'
@@ -23,6 +24,7 @@ export function ParticipationContent({
   teamName,
   angle,
   title,
+  ceremonyLevel,
 }: ParticipationContentProps) {
   const t = useTranslation()
   const [viewState, setViewState] = useState<ViewState>('loading')
@@ -33,6 +35,14 @@ export function ParticipationContent({
   const [sessionOutcome, setSessionOutcome] = useState<PublicSessionOutcome | null>(null)
 
   const angleInfo = getAngleInfo(angle)
+  const levelInfo = getLevelInfo(ceremonyLevel)
+
+  // Level colors for display
+  const levelColors = {
+    shu: { bg: 'bg-amber-500', text: 'text-amber-400', light: 'bg-amber-900/30' },
+    ha: { bg: 'bg-cyan-500', text: 'text-cyan-400', light: 'bg-cyan-900/30' },
+    ri: { bg: 'bg-purple-500', text: 'text-purple-400', light: 'bg-purple-900/30' },
+  }
 
   // Initialize on mount
   useEffect(() => {
@@ -207,11 +217,17 @@ export function ParticipationContent({
       <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-8 text-center">
+            {/* Shu-Ha-Ri Level Badge */}
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${levelColors[ceremonyLevel].light} mb-4`}>
+              <span className={`text-xl font-bold ${levelColors[ceremonyLevel].text}`}>{levelInfo.kanji}</span>
+              <span className={`text-sm font-medium ${levelColors[ceremonyLevel].text}`}>{levelInfo.subtitle}</span>
+            </div>
+
             <div className="text-sm text-cyan-600 dark:text-cyan-400 font-medium mb-2">{t('ceremoniesSession')}</div>
             <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-1">{teamName}</h1>
-            <p className="text-stone-500 dark:text-stone-400 mb-8">{title || angleInfo.label}</p>
+            <p className="text-stone-500 dark:text-stone-400 mb-6">{title || angleInfo.label}</p>
 
-            <div className="text-left bg-stone-50 dark:bg-stone-700 rounded-xl p-4 mb-8">
+            <div className="text-left bg-stone-50 dark:bg-stone-700 rounded-xl p-4 mb-6">
               <div className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">{t('howItWorks')}</div>
               <ul className="text-sm text-stone-600 dark:text-stone-400 space-y-2">
                 <li className="flex items-start gap-2">
@@ -330,8 +346,18 @@ export function ParticipationContent({
               </svg>
             </div>
             <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-2">{t('thankYou')}</h1>
-            <p className="text-stone-500 dark:text-stone-400">
+            <p className="text-stone-500 dark:text-stone-400 mb-6">
               {t('responseRecorded')}
+            </p>
+
+            {/* Level badge */}
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${levelColors[ceremonyLevel].light}`}>
+              <span className={`text-lg font-bold ${levelColors[ceremonyLevel].text}`}>{levelInfo.kanji}</span>
+              <span className={`text-sm ${levelColors[ceremonyLevel].text}`}>{levelInfo.label} Level</span>
+            </div>
+
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-4">
+              {t('resultsSharedLater')}
             </p>
           </CardContent>
         </Card>

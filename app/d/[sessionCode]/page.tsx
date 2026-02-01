@@ -21,6 +21,7 @@ export default async function ParticipationPage({ params }: ParticipationPagePro
       teamName={validation.session.team_name}
       angle={validation.session.angle}
       title={validation.session.title}
+      ceremonyLevel={validation.session.ceremony_level}
     />
   )
 }

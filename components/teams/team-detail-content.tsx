@@ -163,6 +163,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
           return effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
         })()}
         ceremoniesSessions={team.ceremonies?.total_sessions || 0}
+        ceremonyLevel={team.ceremonies?.level as CeremonyLevel | undefined}
       />
 
       {/* ═══════════════════════════════════════════════════════════════════

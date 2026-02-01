@@ -7,6 +7,7 @@ import {
   CeremonySession,
   CeremonySessionWithStats,
   CeremonyAngle,
+  CeremonyLevel,
   ResponseAnswers,
   SynthesisResult,
   StatementScore,
@@ -478,6 +479,7 @@ export async function validateSessionCode(sessionCode: string): Promise<{
     team_name: string
     angle: CeremonyAngle
     title: string | null
+    ceremony_level: CeremonyLevel
   }
 }> {
   const supabase = await createClient()
@@ -491,6 +493,24 @@ export async function validateSessionCode(sessionCode: string): Promise<{
   }
 
   const row = data[0]
+
+  // Get ceremony level from team
+  const { data: sessionData } = await supabase
+    .from('delta_sessions')
+    .select('team_id')
+    .eq('id', row.session_id)
+    .single()
+
+  let ceremonyLevel: CeremonyLevel = 'shu'
+  if (sessionData?.team_id) {
+    const { data: teamData } = await supabase
+      .from('teams')
+      .select('ceremony_level')
+      .eq('id', sessionData.team_id)
+      .single()
+    ceremonyLevel = (teamData?.ceremony_level as CeremonyLevel) || 'shu'
+  }
+
   return {
     valid: true,
     session: {
@@ -498,8 +518,24 @@ export async function validateSessionCode(sessionCode: string): Promise<{
       team_name: row.team_name,
       angle: row.angle as CeremonyAngle,
       title: row.title,
+      ceremony_level: ceremonyLevel,
     },
   }
+}
+
+/**
+ * Get a team's ceremony level
+ */
+export async function getTeamCeremonyLevel(teamId: string): Promise<CeremonyLevel> {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('teams')
+    .select('ceremony_level')
+    .eq('id', teamId)
+    .single()
+
+  return (data?.ceremony_level as CeremonyLevel) || 'shu'
 }
 
 /**

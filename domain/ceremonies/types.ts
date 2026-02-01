@@ -95,56 +95,113 @@ export interface AngleInfo {
   id: CeremonyAngle
   label: string
   description: string
+  level: CeremonyLevel  // Required level to access this angle
 }
 
-// Available angles with metadata
+// Angles organized by Shu-Ha-Ri level
+// Shu (守): Learn the basics - standard ceremonies
+// Ha (破): Adapt intentionally - team dynamics & process
+// Ri (離): Mastery - advanced practices & self-organization
+
 export const ANGLES: AngleInfo[] = [
+  // ═══════════════════════════════════════════
+  // SHU LEVEL (守) - Learn the basics
+  // ═══════════════════════════════════════════
   {
-    id: 'scrum',
-    label: 'Scrum',
-    description: 'Are events useful? Is the framework helping?'
-  },
-  {
-    id: 'flow',
-    label: 'Flow',
-    description: 'Is work moving? Are we finishing what we start?'
-  },
-  {
-    id: 'ownership',
-    label: 'Ownership',
-    description: 'Does the team own it? Can we act without asking?'
-  },
-  {
-    id: 'collaboration',
-    label: 'Collaboration',
-    description: 'Are we working together? Is knowledge shared?'
-  },
-  {
-    id: 'technical_excellence',
-    label: 'Technical Excellence',
-    description: 'Is the code getting better? Are we building quality in?'
-  },
-  {
-    id: 'refinement',
-    label: 'Refinement',
-    description: 'Are stories ready? Is the backlog actionable?'
+    id: 'retro',
+    label: 'Retro',
+    description: 'Are we improving? Do actions lead to change?',
+    level: 'shu'
   },
   {
     id: 'planning',
     label: 'Planning',
-    description: 'Is commitment realistic? Is the Sprint Goal clear?'
+    description: 'Is commitment realistic? Is the Sprint Goal clear?',
+    level: 'shu'
   },
   {
-    id: 'retro',
-    label: 'Retro',
-    description: 'Are we improving? Do actions lead to change?'
+    id: 'scrum',
+    label: 'Scrum',
+    description: 'Are events useful? Is the framework helping?',
+    level: 'shu'
+  },
+
+  // ═══════════════════════════════════════════
+  // HA LEVEL (破) - Adapt intentionally
+  // ═══════════════════════════════════════════
+  {
+    id: 'flow',
+    label: 'Flow',
+    description: 'Is work moving? Are we finishing what we start?',
+    level: 'ha'
+  },
+  {
+    id: 'collaboration',
+    label: 'Collaboration',
+    description: 'Are we working together? Is knowledge shared?',
+    level: 'ha'
+  },
+  {
+    id: 'refinement',
+    label: 'Refinement',
+    description: 'Are stories ready? Is the backlog actionable?',
+    level: 'ha'
+  },
+
+  // ═══════════════════════════════════════════
+  // RI LEVEL (離) - Mastery & own approach
+  // ═══════════════════════════════════════════
+  {
+    id: 'ownership',
+    label: 'Ownership',
+    description: 'Does the team own it? Can we act without asking?',
+    level: 'ri'
+  },
+  {
+    id: 'technical_excellence',
+    label: 'Technical Excellence',
+    description: 'Is the code getting better? Are we building quality in?',
+    level: 'ri'
   },
   {
     id: 'demo',
     label: 'Demo',
-    description: 'Are stakeholders engaged? Is feedback valuable?'
+    description: 'Are stakeholders engaged? Is feedback valuable?',
+    level: 'ri'
   }
 ]
+
+// Get angles available for a specific level (includes all unlocked levels)
+export function getAnglesForLevel(level: CeremonyLevel): AngleInfo[] {
+  const levelOrder: CeremonyLevel[] = ['shu', 'ha', 'ri']
+  const currentLevelIndex = levelOrder.indexOf(level)
+
+  return ANGLES.filter(angle => {
+    const angleLevelIndex = levelOrder.indexOf(angle.level)
+    return angleLevelIndex <= currentLevelIndex
+  })
+}
+
+// Get angles grouped by level for display
+export function getAnglesGroupedByLevel(): Record<CeremonyLevel, AngleInfo[]> {
+  return {
+    shu: ANGLES.filter(a => a.level === 'shu'),
+    ha: ANGLES.filter(a => a.level === 'ha'),
+    ri: ANGLES.filter(a => a.level === 'ri'),
+  }
+}
+
+// Check if an angle is unlocked for a given level
+export function isAngleUnlocked(angle: CeremonyAngle, teamLevel: CeremonyLevel): boolean {
+  const angleInfo = ANGLES.find(a => a.id === angle)
+  if (!angleInfo) return false
+
+  const levelOrder: CeremonyLevel[] = ['shu', 'ha', 'ri']
+  const teamLevelIndex = levelOrder.indexOf(teamLevel)
+  const angleLevelIndex = levelOrder.indexOf(angleInfo.level)
+
+  return angleLevelIndex <= teamLevelIndex
+}
 
 // Helper to get angle info
 export function getAngleInfo(angle: CeremonyAngle): AngleInfo {
