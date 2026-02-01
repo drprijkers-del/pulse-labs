@@ -25,6 +25,7 @@ interface BacklogManagementContentProps {
 }
 
 type Tab = 'backlog' | 'releases'
+type KanbanColumn = 'review' | 'exploring' | 'building' | 'not_doing'
 
 export function BacklogManagementContent({ backlogItems, releaseNotes }: BacklogManagementContentProps) {
   const router = useRouter()
@@ -37,11 +38,65 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
   const [deleteReleaseId, setDeleteReleaseId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [formStatus, setFormStatus] = useState<BacklogStatus>('review')
+  const [draggedItem, setDraggedItem] = useState<BacklogItem | null>(null)
+  const [dragOverColumn, setDragOverColumn] = useState<KanbanColumn | null>(null)
 
-  const itemsByStatus = {
+  // Group items by kanban columns
+  const itemsByColumn: Record<KanbanColumn, BacklogItem[]> = {
     review: backlogItems.filter(i => i.status === 'review'),
     exploring: backlogItems.filter(i => i.status === 'exploring'),
-    decided: backlogItems.filter(i => i.status === 'decided'),
+    building: backlogItems.filter(i => i.status === 'decided' && i.decision === 'building'),
+    not_doing: backlogItems.filter(i => i.status === 'decided' && i.decision === 'not_doing'),
+  }
+
+  const columnConfig: Record<KanbanColumn, { title: string; color: string; bgColor: string }> = {
+    review: { title: 'Under Review', color: 'text-yellow-400', bgColor: 'bg-yellow-500/10 border-yellow-500/30' },
+    exploring: { title: 'Exploring', color: 'text-blue-400', bgColor: 'bg-blue-500/10 border-blue-500/30' },
+    building: { title: 'Building', color: 'text-green-400', bgColor: 'bg-green-500/10 border-green-500/30' },
+    not_doing: { title: 'Not Doing', color: 'text-red-400', bgColor: 'bg-red-500/10 border-red-500/30' },
+  }
+
+  async function handleDrop(targetColumn: KanbanColumn) {
+    if (!draggedItem) return
+
+    // Determine new status and decision based on column
+    let newStatus: BacklogStatus
+    let newDecision: BacklogDecision | null = null
+
+    if (targetColumn === 'review') {
+      newStatus = 'review'
+    } else if (targetColumn === 'exploring') {
+      newStatus = 'exploring'
+    } else {
+      newStatus = 'decided'
+      newDecision = targetColumn === 'building' ? 'building' : 'not_doing'
+    }
+
+    // Skip if no change
+    if (draggedItem.status === newStatus && draggedItem.decision === newDecision) {
+      setDraggedItem(null)
+      setDragOverColumn(null)
+      return
+    }
+
+    setLoading(true)
+
+    const formData = new FormData()
+    formData.set('product', draggedItem.product)
+    formData.set('category', draggedItem.category)
+    formData.set('status', newStatus)
+    if (newDecision) formData.set('decision', newDecision)
+    formData.set('title_en', draggedItem.title_en)
+    formData.set('source_en', draggedItem.source_en || '')
+    formData.set('our_take_en', draggedItem.our_take_en || '')
+    formData.set('reviewed_at', draggedItem.reviewed_at || new Date().toISOString().split('T')[0])
+
+    await updateBacklogItem(draggedItem.id, formData)
+
+    setLoading(false)
+    setDraggedItem(null)
+    setDragOverColumn(null)
+    router.refresh()
   }
 
   async function handleBacklogSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -130,27 +185,10 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
       features: 'bg-emerald-100 text-emerald-700',
     }
     return (
-      <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[category]}`}>
+      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${colors[category]}`}>
         {getCategoryLabel(category)}
       </span>
     )
-  }
-
-  function getStatusBadge(status: BacklogStatus, decision?: BacklogDecision | null) {
-    if (status === 'decided' && decision) {
-      const colors = decision === 'building' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-      const label = decision === 'building' ? 'Building' : 'Not doing'
-      return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors}`}>{label}</span>
-    }
-
-    const statusLabels: Record<BacklogStatus, { label: string; color: string }> = {
-      review: { label: 'Review', color: 'bg-yellow-100 text-yellow-700' },
-      exploring: { label: 'Exploring', color: 'bg-blue-100 text-blue-700' },
-      decided: { label: 'Decided', color: 'bg-stone-100 text-stone-700' },
-    }
-
-    const s = statusLabels[status]
-    return <span className={`px-2 py-0.5 rounded text-xs font-medium ${s.color}`}>{s.label}</span>
   }
 
   function getProductBadge(product: ProductType) {
@@ -160,14 +198,14 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
       shared: { label: 'Shared', color: 'bg-stone-700 text-stone-300' },
     }
     const p = config[product]
-    return <span className={`px-2 py-0.5 rounded text-xs font-medium ${p.color}`}>{p.label}</span>
+    return <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${p.color}`}>{p.label}</span>
   }
 
   return (
     <div className="min-h-screen bg-stone-900 text-white">
       {/* Header */}
       <header className="border-b border-stone-700 p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
+        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Link href="/super-admin/dashboard" className="text-stone-400 hover:text-white">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,7 +215,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
             <span className="font-bold text-lg">Backlog & Release Notes</span>
           </div>
           <Link
-            href="/backlog"
+            href="/teams"
             target="_blank"
             className="text-sm text-cyan-400 hover:text-cyan-300"
           >
@@ -186,7 +224,7 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-6">
+      <main className="max-w-[1400px] mx-auto p-6">
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-stone-700">
           <button
@@ -211,10 +249,11 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
           </button>
         </div>
 
-        {/* Backlog Tab */}
+        {/* Backlog Tab - Kanban Board */}
         {activeTab === 'backlog' && (
           <div>
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-sm text-stone-500">Drag items between columns to change status</p>
               <button
                 onClick={() => { setEditingBacklog(null); setFormStatus('review'); setShowBacklogForm(true) }}
                 className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-medium"
@@ -223,191 +262,205 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
               </button>
             </div>
 
-            {/* Backlog Form */}
+            {/* Edit Form Modal */}
             {showBacklogForm && (
-              <div className="bg-stone-800 border border-stone-700 rounded-xl p-6 mb-6">
-                <h2 className="font-medium text-white mb-4">
-                  {editingBacklog ? 'Edit item' : 'New backlog item'}
-                </h2>
-                <form onSubmit={handleBacklogSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-stone-300 mb-1">Product</label>
-                      <select
-                        name="product"
-                        defaultValue={editingBacklog?.product || 'pulse'}
-                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-                      >
-                        <option value="pulse">Pulse</option>
-                        <option value="delta">Delta</option>
-                        <option value="shared">Shared</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-stone-300 mb-1">Category</label>
-                      <select
-                        name="category"
-                        defaultValue={editingBacklog?.category || 'features'}
-                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-                      >
-                        <option value="ux">UX</option>
-                        <option value="statements">Statements</option>
-                        <option value="analytics">Analytics</option>
-                        <option value="integration">Integration</option>
-                        <option value="features">Features</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-stone-300 mb-1">Status</label>
-                      <select
-                        name="status"
-                        value={formStatus}
-                        onChange={(e) => setFormStatus(e.target.value as BacklogStatus)}
-                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
-                      >
-                        <option value="review">Review</option>
-                        <option value="exploring">Exploring</option>
-                        <option value="decided">Decided</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {formStatus === 'decided' && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => { setShowBacklogForm(false); setEditingBacklog(null) }}>
+                <div className="bg-stone-800 border border-stone-700 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                  <h2 className="font-medium text-white mb-4 text-lg">
+                    {editingBacklog ? 'Edit item' : 'New backlog item'}
+                  </h2>
+                  <form onSubmit={handleBacklogSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-stone-300 mb-1">Decision</label>
+                        <label className="block text-sm font-medium text-stone-300 mb-1">Product</label>
                         <select
-                          name="decision"
-                          defaultValue={editingBacklog?.decision || 'building'}
+                          name="product"
+                          defaultValue={editingBacklog?.product || 'pulse'}
                           className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
                         >
-                          <option value="building">Building</option>
-                          <option value="not_doing">Not doing</option>
+                          <option value="pulse">Pulse</option>
+                          <option value="delta">Delta</option>
+                          <option value="shared">Shared</option>
                         </select>
                       </div>
-                    )}
+                      <div>
+                        <label className="block text-sm font-medium text-stone-300 mb-1">Category</label>
+                        <select
+                          name="category"
+                          defaultValue={editingBacklog?.category || 'features'}
+                          className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
+                        >
+                          <option value="ux">UX</option>
+                          <option value="statements">Statements</option>
+                          <option value="analytics">Analytics</option>
+                          <option value="integration">Integration</option>
+                          <option value="features">Features</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-stone-300 mb-1">Status</label>
+                        <select
+                          name="status"
+                          value={formStatus}
+                          onChange={(e) => setFormStatus(e.target.value as BacklogStatus)}
+                          className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
+                        >
+                          <option value="review">Review</option>
+                          <option value="exploring">Exploring</option>
+                          <option value="decided">Decided</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {formStatus === 'decided' && (
+                        <div>
+                          <label className="block text-sm font-medium text-stone-300 mb-1">Decision</label>
+                          <select
+                            name="decision"
+                            defaultValue={editingBacklog?.decision || 'building'}
+                            className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
+                          >
+                            <option value="building">Building</option>
+                            <option value="not_doing">Not doing</option>
+                          </select>
+                        </div>
+                      )}
+                      <div>
+                        <label className="block text-sm font-medium text-stone-300 mb-1">Date</label>
+                        <input
+                          type="date"
+                          name="reviewed_at"
+                          defaultValue={editingBacklog?.reviewed_at?.split('T')[0] || new Date().toISOString().split('T')[0]}
+                          className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <label className="block text-sm font-medium text-stone-300 mb-1">Date</label>
+                      <label className="block text-sm font-medium text-stone-300 mb-1">Title</label>
                       <input
-                        type="date"
-                        name="reviewed_at"
-                        defaultValue={editingBacklog?.reviewed_at?.split('T')[0] || new Date().toISOString().split('T')[0]}
-                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
+                        name="title_en"
+                        defaultValue={editingBacklog?.title_en || ''}
+                        required
+                        placeholder="What is being requested?"
+                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-stone-300 mb-1">Title</label>
-                    <input
-                      name="title_en"
-                      defaultValue={editingBacklog?.title_en || ''}
-                      required
-                      placeholder="What is being requested?"
-                      className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-sm font-medium text-stone-300 mb-1">Source</label>
+                      <p className="text-xs text-stone-500 mb-2">Where did this request come from?</p>
+                      <input
+                        name="source_en"
+                        defaultValue={editingBacklog?.source_en || ''}
+                        placeholder="e.g., User feedback, internal idea, customer interview"
+                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-stone-300 mb-1">Source</label>
-                    <p className="text-xs text-stone-500 mb-2">Where did this request come from?</p>
-                    <input
-                      name="source_en"
-                      defaultValue={editingBacklog?.source_en || ''}
-                      placeholder="e.g., User feedback, internal idea, customer interview"
-                      className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-sm font-medium text-stone-300 mb-1">Our take</label>
+                      <p className="text-xs text-stone-500 mb-2">What&apos;s our perspective on this?</p>
+                      <textarea
+                        name="our_take_en"
+                        rows={3}
+                        defaultValue={editingBacklog?.our_take_en || ''}
+                        placeholder="Explain the reasoning..."
+                        className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-stone-300 mb-1">Our take</label>
-                    <p className="text-xs text-stone-500 mb-2">What&apos;s our perspective on this?</p>
-                    <textarea
-                      name="our_take_en"
-                      rows={3}
-                      defaultValue={editingBacklog?.our_take_en || ''}
-                      placeholder="Explain the reasoning..."
-                      className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white placeholder:text-stone-500"
-                    />
-                  </div>
-
-                  <div className="flex gap-2 justify-end">
-                    <button
-                      type="button"
-                      onClick={() => { setShowBacklogForm(false); setEditingBacklog(null); setFormStatus('review') }}
-                      className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-lg text-sm"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm disabled:opacity-50"
-                    >
-                      {loading ? 'Saving...' : (editingBacklog ? 'Save' : 'Add')}
-                    </button>
-                  </div>
-                </form>
+                    <div className="flex gap-2 justify-end pt-2">
+                      <button
+                        type="button"
+                        onClick={() => { setShowBacklogForm(false); setEditingBacklog(null); setFormStatus('review') }}
+                        className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-lg text-sm"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm disabled:opacity-50"
+                      >
+                        {loading ? 'Saving...' : (editingBacklog ? 'Save' : 'Add')}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             )}
 
-            {/* Backlog Items List */}
-            <div className="space-y-6">
-              {(['review', 'exploring', 'decided'] as BacklogStatus[]).map(status => (
-                <div key={status}>
-                  <h3 className="text-sm font-medium text-stone-400 mb-3 uppercase tracking-wide">
-                    {status === 'review' && 'Under review'}
-                    {status === 'exploring' && 'Exploring'}
-                    {status === 'decided' && 'Decided'}
-                    {' '}({itemsByStatus[status].length})
-                  </h3>
+            {/* Kanban Board */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {(['review', 'exploring', 'building', 'not_doing'] as KanbanColumn[]).map(column => (
+                <div
+                  key={column}
+                  className={`rounded-xl border-2 transition-colors ${
+                    dragOverColumn === column
+                      ? columnConfig[column].bgColor + ' border-dashed'
+                      : 'bg-stone-800/50 border-stone-700'
+                  }`}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverColumn(column) }}
+                  onDragLeave={() => setDragOverColumn(null)}
+                  onDrop={(e) => { e.preventDefault(); handleDrop(column) }}
+                >
+                  {/* Column Header */}
+                  <div className="p-3 border-b border-stone-700">
+                    <div className="flex items-center justify-between">
+                      <h3 className={`text-sm font-semibold ${columnConfig[column].color}`}>
+                        {columnConfig[column].title}
+                      </h3>
+                      <span className="text-xs text-stone-500 bg-stone-700/50 px-2 py-0.5 rounded-full">
+                        {itemsByColumn[column].length}
+                      </span>
+                    </div>
+                  </div>
 
-                  {itemsByStatus[status].length === 0 ? (
-                    <p className="text-sm text-stone-500 italic">No items</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {itemsByStatus[status].map(item => (
-                        <div key={item.id} className="bg-stone-800 border border-stone-700 rounded-xl p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap mb-1">
-                                {getProductBadge(item.product)}
-                                {getCategoryBadge(item.category)}
-                                {getStatusBadge(item.status, item.decision)}
-                              </div>
-                              <p className="font-medium text-white">{item.title_en}</p>
-                              {item.source_en && (
-                                <p className="text-xs text-stone-500 mt-1">Source: {item.source_en}</p>
-                              )}
-                              {item.our_take_en && (
-                                <p className="text-sm text-stone-400 mt-1 line-clamp-2">{item.our_take_en}</p>
-                              )}
-                            </div>
-                            <div className="flex gap-1 flex-shrink-0">
-                              <button
-                                onClick={() => { setEditingBacklog(item); setFormStatus(item.status); setShowBacklogForm(true) }}
-                                className="p-2 text-stone-400 hover:text-white"
-                                title="Edit"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => setDeleteBacklogId(item.id)}
-                                className="p-2 text-stone-400 hover:text-red-400"
-                                title="Delete"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
+                  {/* Column Items */}
+                  <div className="p-2 space-y-2 min-h-[200px]">
+                    {itemsByColumn[column].length === 0 ? (
+                      <p className="text-xs text-stone-600 text-center py-8">
+                        Drop items here
+                      </p>
+                    ) : (
+                      itemsByColumn[column].map(item => (
+                        <div
+                          key={item.id}
+                          draggable
+                          onDragStart={() => setDraggedItem(item)}
+                          onDragEnd={() => { setDraggedItem(null); setDragOverColumn(null) }}
+                          onClick={() => { setEditingBacklog(item); setFormStatus(item.status); setShowBacklogForm(true) }}
+                          className={`bg-stone-800 border border-stone-700 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-stone-600 transition-all ${
+                            draggedItem?.id === item.id ? 'opacity-50' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                            {getProductBadge(item.product)}
+                            {getCategoryBadge(item.category)}
+                          </div>
+                          <p className="text-sm font-medium text-white line-clamp-2">{item.title_en}</p>
+                          {item.source_en && (
+                            <p className="text-[10px] text-stone-500 mt-1.5 line-clamp-1">
+                              {item.source_en}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-end mt-2 pt-2 border-t border-stone-700/50">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setDeleteBacklogId(item.id) }}
+                              className="p-1 text-stone-500 hover:text-red-400 transition-colors"
+                              title="Delete"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
