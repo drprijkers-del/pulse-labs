@@ -1,0 +1,20 @@
+# Team Lab - Robots.txt
+# https://teamlab.app
+
+User-agent: *
+Allow: /
+
+# Disallow admin and sensitive routes
+Disallow: /api/
+Disallow: /super-admin/
+Disallow: /pulse/admin/
+Disallow: /teams/
+Disallow: /delta/
+Disallow: /session/
+
+# Allow public participation routes
+Allow: /d/
+Allow: /pulse/t/
+
+# Sitemap
+# Sitemap: https://teamlab.app/sitemap.xml
