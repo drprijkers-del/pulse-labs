@@ -355,6 +355,15 @@ export const translations = {
     switchTeam: 'Wissel van team',
     viewAllTeams: 'Alle teams bekijken',
     backlogTab: 'Backlog',
+
+    // Section explanations (customer journey)
+    vibeExplanation: 'Vibe geeft je dagelijkse signalen over het welzijn van je team. Teamleden geven anoniem hun stemming aan, zodat je trends kunt zien en tijdig kunt bijsturen als dat nodig is.',
+    ceremoniesExplanation: 'Ceremonies helpt je team om effectiever samen te werken. Voer gerichte check-ins uit rondom specifieke thema\'s zoals planning, retro of samenwerking en ontdek waar verbetering mogelijk is.',
+    feedbackExplanation: 'Verzamel gerichte feedback van je team over specifieke onderwerpen. Creëer een veilige ruimte voor teamleden om hun gedachten te delen.',
+    coachExplanation: 'Genereer coaching vragen gebaseerd op de huidige signalen van je team. Gebruik deze vragen om diepere gesprekken te voeren en inzichten te verkrijgen.',
+    settingsExplanation: 'Beheer de instellingen van dit team. Activeer of deactiveer tools, exporteer data en pas teaminstellingen aan.',
+    modulesExplanation: 'Ontdek aanvullende modules om de samenwerking van je team naar een hoger niveau te tillen. Premium functionaliteit voor geavanceerde teams.',
+
     teamsViewTeam: 'Bekijk team',
     teamsCreateTitle: 'Nieuw team',
     teamsCreateSubtitle: 'Maak een team aan voor Vibe en Ceremonies',
@@ -865,6 +874,15 @@ export const translations = {
     switchTeam: 'Switch team',
     viewAllTeams: 'View all teams',
     backlogTab: 'Backlog',
+
+    // Section explanations (customer journey)
+    vibeExplanation: 'Vibe provides daily signals about your team\'s wellbeing. Team members anonymously share their mood, allowing you to spot trends and intervene early when needed.',
+    ceremoniesExplanation: 'Ceremonies helps your team collaborate more effectively. Run focused check-ins around specific themes like planning, retro, or collaboration and discover where improvement is possible.',
+    feedbackExplanation: 'Collect targeted feedback from your team on specific topics. Create a safe space for team members to share their thoughts.',
+    coachExplanation: 'Generate coaching questions based on your team\'s current signals. Use these questions to facilitate deeper conversations and gain insights.',
+    settingsExplanation: 'Manage settings for this team. Enable or disable tools, export data, and adjust team configurations.',
+    modulesExplanation: 'Discover additional modules to take your team\'s collaboration to the next level. Premium functionality for advanced teams.',
+
     teamsViewTeam: 'View team',
     teamsCreateTitle: 'New team',
     teamsCreateSubtitle: 'Create a team for Vibe and Ceremonies',

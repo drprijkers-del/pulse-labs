@@ -3,6 +3,8 @@
 import { useTranslation } from '@/lib/i18n/context'
 
 interface OverallSignalProps {
+  teamName: string
+  needsAttention?: boolean
   vibeScore: number | null
   ceremoniesScore: number | null
   vibeParticipation: number // percentage 0-100
@@ -10,6 +12,8 @@ interface OverallSignalProps {
 }
 
 export function OverallSignal({
+  teamName,
+  needsAttention = false,
   vibeScore,
   ceremoniesScore,
   vibeParticipation,
@@ -86,17 +90,32 @@ export function OverallSignal({
   const colors = colorMap[status.color as keyof typeof colorMap]
 
   return (
-    <div className={`rounded-xl border ${colors.border} ${colors.bgLight} p-4 sm:p-5`}>
+    <div className={`rounded-xl border ${colors.border} ${colors.bgLight} p-4 sm:p-6`}>
+      {/* Team name header */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-stone-100">
+          {teamName}
+        </h1>
+        {needsAttention && (
+          <span className="px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
+            {t('teamsNeedsAttention')}
+          </span>
+        )}
+        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${colors.bgLight} ${colors.text} ${colors.border} border`}>
+          {status.label}
+        </span>
+      </div>
+
       <div className="flex items-center gap-4">
         {/* Score circle */}
         <div className="relative">
-          <div className={`w-16 h-16 rounded-full ${colors.bg} flex items-center justify-center ring-4 ${colors.ring}`}>
+          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full ${colors.bg} flex items-center justify-center ring-4 ${colors.ring}`}>
             {combinedScore !== null ? (
-              <span className="text-2xl font-bold text-white">
+              <span className="text-xl sm:text-2xl font-bold text-white">
                 {combinedScore.toFixed(1)}
               </span>
             ) : (
-              <span className="text-2xl text-white/60">—</span>
+              <span className="text-xl sm:text-2xl text-white/60">—</span>
             )}
           </div>
         </div>
@@ -104,12 +123,9 @@ export function OverallSignal({
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-stone-900 dark:text-stone-100">
+            <h3 className="font-medium text-stone-700 dark:text-stone-300">
               {t('signalTitle')}
             </h3>
-            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${colors.bgLight} ${colors.text} ${colors.border} border`}>
-              {status.label}
-            </span>
           </div>
 
           {/* Source indicators */}

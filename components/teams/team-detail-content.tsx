@@ -146,30 +146,14 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
 
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* ═══════════════════════════════════════════════════════════════════
-          ZONE 1: TEAM CONTEXT & SECTION DESCRIPTION
-          ═══════════════════════════════════════════════════════════════════ */}
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{team.name}</h1>
-          {team.needs_attention && (
-            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
-              {t('teamsNeedsAttention')}
-            </span>
-          )}
-        </div>
-        {/* Section context description */}
-        <p className="text-sm text-stone-500 dark:text-stone-400 max-w-2xl">
-          {t('teamDetailContext')}
-        </p>
-      </header>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          ZONE 2: PRIMARY STATE (VISUALLY DOMINANT)
-          Current signals, trend, and reliability at a glance
+          ZONE 1: TEAM SIGNAL BAR (with team name)
+          Primary state indicator - visually dominant
           ═══════════════════════════════════════════════════════════════════ */}
       <OverallSignal
+        teamName={team.name}
+        needsAttention={team.needs_attention}
         vibeScore={team.vibe?.average_score || null}
         ceremoniesScore={team.ceremonies?.average_score || null}
         vibeParticipation={(() => {
@@ -179,6 +163,22 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         })()}
         ceremoniesSessions={team.ceremonies?.total_sessions || 0}
       />
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          ZONE 2: SECTION CONTEXT
+          Elaborate explanation of what this area does
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl p-4 sm:p-5">
+        <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
+          {activeTab === 'vibe' && t('vibeExplanation')}
+          {activeTab === 'ceremonies' && t('ceremoniesExplanation')}
+          {activeTab === 'feedback' && t('feedbackExplanation')}
+          {activeTab === 'coach' && t('coachExplanation')}
+          {activeTab === 'settings' && t('settingsExplanation')}
+          {activeTab === 'modules' && t('modulesExplanation')}
+          {!activeTab && t('teamDetailContext')}
+        </p>
+      </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
           ZONE 3: SIGNAL CONFIDENCE & ONBOARDING
