@@ -12,7 +12,7 @@ interface BacklogDisplayProps {
   releases: ReleaseNote[]
 }
 
-type Tab = 'exploring' | 'building' | 'not_doing' | 'releases'
+type Tab = 'exploring' | 'building' | 'done' | 'not_doing' | 'releases'
 type WishState = 'browsing' | 'form' | 'submitting' | 'success'
 
 export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
@@ -28,12 +28,21 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
   // Group items
   const exploring = items.filter(i => i.status === 'exploring')
   const building = items.filter(i => i.status === 'decided' && i.decision === 'building')
+  const done = items.filter(i => i.status === 'decided' && i.decision === 'done')
   const notDoing = items.filter(i => i.status === 'decided' && i.decision === 'not_doing')
   const review = items.filter(i => i.status === 'review')
+
+  // Extract version from our_take (format: "Released in vX.X.X - ...")
+  const extractVersion = (text: string | null): string | null => {
+    if (!text) return null
+    const match = text.match(/^Released in (v[\d.]+)/)
+    return match ? match[1] : null
+  }
 
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: 'exploring', label: 'Exploring', count: exploring.length },
     { id: 'building', label: 'Building', count: building.length },
+    { id: 'done', label: 'Done', count: done.length },
     { id: 'not_doing', label: 'Not doing', count: notDoing.length },
     { id: 'releases', label: 'Releases', count: releases.length },
   ]
@@ -354,6 +363,60 @@ export function BacklogDisplay({ items, releases }: BacklogDisplayProps) {
             Decided to build. Coming soon to Pulse.
           </p>
           {renderItems(building)}
+        </div>
+      )}
+
+      {activeTab === 'done' && (
+        <div>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
+            Completed and released. Check Releases for details.
+          </p>
+          {done.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-stone-400 dark:text-stone-500">No items yet</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {done.map((item) => {
+                const productBadge = getProductBadge(item.product)
+                const version = extractVersion(item.our_take_en)
+                return (
+                  <Card key={item.id}>
+                    <CardContent className="py-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex flex-col gap-1.5">
+                          <span className={`text-xs px-2 py-0.5 rounded border ${productBadge.color}`}>
+                            {productBadge.label}
+                          </span>
+                          <span className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(item.category)}`}>
+                            {getCategoryLabel(item.category)}
+                          </span>
+                          {version && (
+                            <span className="text-xs font-mono bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 px-2 py-1 rounded">
+                              {version}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-stone-900 dark:text-stone-100">{item.title_en}</h3>
+                          {item.source_en && (
+                            <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">{item.source_en}</p>
+                          )}
+                          {item.our_take_en && (
+                            <p className="text-sm text-stone-600 dark:text-stone-300 mt-2 italic">
+                              &ldquo;{item.our_take_en}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
