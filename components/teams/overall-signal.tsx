@@ -3,33 +3,33 @@
 import { useTranslation } from '@/lib/i18n/context'
 
 interface OverallSignalProps {
-  pulseScore: number | null
-  deltaScore: number | null
-  pulseParticipation: number // percentage 0-100
-  deltaSessions: number
+  vibeScore: number | null
+  ceremoniesScore: number | null
+  vibeParticipation: number // percentage 0-100
+  ceremoniesSessions: number
 }
 
 export function OverallSignal({
-  pulseScore,
-  deltaScore,
-  pulseParticipation,
-  deltaSessions,
+  vibeScore,
+  ceremoniesScore,
+  vibeParticipation,
+  ceremoniesSessions,
 }: OverallSignalProps) {
   const t = useTranslation()
 
   // Calculate combined score (weighted average)
-  // Pulse: 60% weight (daily signal), Delta: 40% weight (periodic deep dive)
+  // Vibe: 60% weight (daily signal), Ceremonies: 40% weight (periodic deep dive)
   let combinedScore: number | null = null
   let scoreSource: 'both' | 'vibe' | 'ceremonies' | 'none' = 'none'
 
-  if (pulseScore !== null && deltaScore !== null) {
-    combinedScore = pulseScore * 0.6 + deltaScore * 0.4
+  if (vibeScore !== null && ceremoniesScore !== null) {
+    combinedScore = vibeScore * 0.6 + ceremoniesScore * 0.4
     scoreSource = 'both'
-  } else if (pulseScore !== null) {
-    combinedScore = pulseScore
+  } else if (vibeScore !== null) {
+    combinedScore = vibeScore
     scoreSource = 'vibe'
-  } else if (deltaScore !== null) {
-    combinedScore = deltaScore
+  } else if (ceremoniesScore !== null) {
+    combinedScore = ceremoniesScore
     scoreSource = 'ceremonies'
   }
 
@@ -114,19 +114,19 @@ export function OverallSignal({
 
           {/* Source indicators */}
           <div className="flex flex-wrap items-center gap-3 text-sm">
-            {pulseScore !== null && (
+            {vibeScore !== null && (
               <div className="flex items-center gap-1.5">
                 <span className="text-pink-500">♥</span>
                 <span className="text-stone-600 dark:text-stone-400">
-                  Pulse: {pulseScore.toFixed(1)}
+                  Vibe: {vibeScore.toFixed(1)}
                 </span>
               </div>
             )}
-            {deltaScore !== null && (
+            {ceremoniesScore !== null && (
               <div className="flex items-center gap-1.5">
                 <span className="text-cyan-500 font-bold">Δ</span>
                 <span className="text-stone-600 dark:text-stone-400">
-                  Delta: {deltaScore.toFixed(1)}
+                  Ceremonies: {ceremoniesScore.toFixed(1)}
                 </span>
               </div>
             )}
@@ -149,14 +149,14 @@ export function OverallSignal({
         <div className="hidden sm:flex items-center gap-4 text-center">
           <div>
             <div className="text-lg font-bold text-stone-900 dark:text-stone-100">
-              {pulseParticipation}%
+              {vibeParticipation}%
             </div>
             <div className="text-xs text-stone-500 dark:text-stone-400">{t('signalParticipation')}</div>
           </div>
           <div className="w-px h-8 bg-stone-200 dark:bg-stone-700" />
           <div>
             <div className="text-lg font-bold text-stone-900 dark:text-stone-100">
-              {deltaSessions}
+              {ceremoniesSessions}
             </div>
             <div className="text-xs text-stone-500 dark:text-stone-400">{t('sessions')}</div>
           </div>

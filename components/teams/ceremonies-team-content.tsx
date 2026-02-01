@@ -184,8 +184,8 @@ export function CeremoniesTeamContent({ team, sessions, stats, basePath }: Cerem
         <CardContent className="py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t('startCeremonySession')}</h2>
-              <p className="text-sm text-stone-600 dark:text-stone-400">{t('startCeremonySessionSubtitle')}</p>
+              <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t('startCeremoniesSession')}</h2>
+              <p className="text-sm text-stone-600 dark:text-stone-400">{t('startCeremoniesSessionSubtitle')}</p>
             </div>
             <Link href={newSessionPath}>
               <Button>

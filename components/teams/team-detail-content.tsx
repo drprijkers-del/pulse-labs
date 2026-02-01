@@ -187,9 +187,9 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
 
       {/* Overall Signal - shows combined health score */}
       <OverallSignal
-        pulseScore={team.vibe?.average_score || null}
-        deltaScore={team.ceremonies?.average_score || null}
-        pulseParticipation={(() => {
+        vibeScore={team.vibe?.average_score || null}
+        ceremoniesScore={team.ceremonies?.average_score || null}
+        vibeParticipation={(() => {
           const effectiveSize = team.expected_team_size || team.vibe?.participant_count || 1
           const todayCount = team.vibe?.today_entries || 0
           return effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
