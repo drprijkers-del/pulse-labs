@@ -35,7 +35,7 @@ export function TeamDetailContent({ team, metrics, insights, flyFrequency }: Tea
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Back link */}
         <Link
-          href="/pulse/admin/teams"
+          href="/vibe/admin/teams"
           className="inline-flex items-center text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 mb-6 min-h-11 py-2"
         >
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

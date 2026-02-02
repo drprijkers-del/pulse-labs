@@ -7,14 +7,14 @@ Allow: /
 # Disallow admin and sensitive routes
 Disallow: /api/
 Disallow: /super-admin/
-Disallow: /pulse/admin/
+Disallow: /vibe/admin/
 Disallow: /teams/
 Disallow: /delta/
 Disallow: /session/
 
 # Allow public participation routes
 Allow: /d/
-Allow: /pulse/t/
+Allow: /vibe/t/
 
 # Sitemap
 # Sitemap: https://teamlab.app/sitemap.xml

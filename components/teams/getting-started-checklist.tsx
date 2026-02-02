@@ -120,7 +120,7 @@ export function GettingStartedChecklist({
           </div>
           {!hasPulseEntries && (
             <Link
-              href={`/pulse/t/${teamSlug}`}
+              href={`/vibe/t/${teamSlug}`}
               target="_blank"
               className="px-4 py-2.5 text-xs font-medium bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors shrink-0 min-h-11 flex items-center"
             >

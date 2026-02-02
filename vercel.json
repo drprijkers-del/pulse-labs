@@ -16,22 +16,22 @@
       "permanent": true
     },
     {
-      "source": "/pulse/admin/login",
+      "source": "/vibe/admin/login",
       "destination": "/login",
       "permanent": true
     },
     {
-      "source": "/pulse/admin/teams",
+      "source": "/vibe/admin/teams",
       "destination": "/teams",
       "permanent": true
     },
     {
-      "source": "/pulse/admin/teams/new",
+      "source": "/vibe/admin/teams/new",
       "destination": "/teams/new",
       "permanent": true
     },
     {
-      "source": "/pulse/admin/teams/:id",
+      "source": "/vibe/admin/teams/:id",
       "destination": "/teams/:id",
       "permanent": true
     },
@@ -57,7 +57,7 @@
     },
     {
       "source": "/t/:path*",
-      "destination": "/pulse/t/:path*",
+      "destination": "/vibe/t/:path*",
       "permanent": true
     },
     {

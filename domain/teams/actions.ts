@@ -656,7 +656,7 @@ export async function createTeam(formData: FormData): Promise<{ success: boolean
     .insert({ team_id: team.id, token_hash: tokenHash })
 
   revalidatePath('/teams')
-  revalidatePath('/pulse/admin/teams')
+  revalidatePath('/vibe/admin/teams')
 
   return { success: true, teamId: team.id }
 }
@@ -703,8 +703,8 @@ export async function updateTeam(
 
   revalidatePath('/teams')
   revalidatePath(`/teams/${id}`)
-  revalidatePath('/pulse/admin/teams')
-  revalidatePath(`/pulse/admin/teams/${id}`)
+  revalidatePath('/vibe/admin/teams')
+  revalidatePath(`/vibe/admin/teams/${id}`)
 
   return { success: true }
 }
@@ -728,7 +728,7 @@ export async function deleteTeam(id: string): Promise<{ success: boolean; error?
   }
 
   revalidatePath('/teams')
-  revalidatePath('/pulse/admin/teams')
+  revalidatePath('/vibe/admin/teams')
 
   return { success: true }
 }
@@ -764,8 +764,8 @@ export async function resetTeam(id: string): Promise<{ success: boolean; error?:
 
   revalidatePath('/teams')
   revalidatePath(`/teams/${id}`)
-  revalidatePath('/pulse/admin/teams')
-  revalidatePath(`/pulse/admin/teams/${id}`)
+  revalidatePath('/vibe/admin/teams')
+  revalidatePath(`/vibe/admin/teams/${id}`)
 
   return { success: true }
 }
@@ -798,7 +798,7 @@ export async function regenerateInviteLink(teamId: string): Promise<{ success: b
   }
 
   revalidatePath(`/teams/${teamId}`)
-  revalidatePath(`/pulse/admin/teams/${teamId}`)
+  revalidatePath(`/vibe/admin/teams/${teamId}`)
 
   return { success: true, token }
 }

@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Handle Pulse admin routes - require authentication
-  if (pathname.startsWith('/pulse/admin') && !pathname.startsWith('/pulse/admin/login')) {
+  if (pathname.startsWith('/vibe/admin') && !pathname.startsWith('/vibe/admin/login')) {
     // First check for password session cookie
     const passwordSession = request.cookies.get('admin_password_session')?.value
     if (passwordSession) {
@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
     const { user, supabaseResponse } = await updateSession(request)
 
     if (!user) {
-      const loginUrl = new URL('/pulse/admin/login', request.url)
+      const loginUrl = new URL('/vibe/admin/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
     }
@@ -100,7 +100,7 @@ export async function middleware(request: NextRequest) {
     const { user, supabaseResponse } = await updateSession(request)
 
     if (!user) {
-      const loginUrl = new URL('/pulse/admin/login', request.url)
+      const loginUrl = new URL('/vibe/admin/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
     }
@@ -109,7 +109,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Handle team invite links with token (Pulse)
-  if (pathname.startsWith('/pulse/t/') && searchParams.has('k')) {
+  if (pathname.startsWith('/vibe/t/') && searchParams.has('k')) {
     const { supabaseResponse } = await updateSession(request)
     return supabaseResponse
   }
@@ -122,16 +122,16 @@ export async function middleware(request: NextRequest) {
 
   // Legacy redirects for old routes
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/')) {
-    return NextResponse.redirect(new URL('/pulse/admin/teams', request.url))
+    return NextResponse.redirect(new URL('/vibe/admin/teams', request.url))
   }
   if (pathname === '/admin/teams') {
-    return NextResponse.redirect(new URL('/pulse/admin/teams', request.url))
+    return NextResponse.redirect(new URL('/vibe/admin/teams', request.url))
   }
   if (pathname === '/admin/login') {
-    return NextResponse.redirect(new URL('/pulse/admin/login', request.url))
+    return NextResponse.redirect(new URL('/vibe/admin/login', request.url))
   }
   if (pathname.startsWith('/t/')) {
-    const newPath = pathname.replace('/t/', '/pulse/t/')
+    const newPath = pathname.replace('/t/', '/vibe/t/')
     return NextResponse.redirect(new URL(newPath + request.nextUrl.search, request.url))
   }
   if (pathname === '/feedback/backlog') {

@@ -15,7 +15,7 @@ export function TeamCard({ team, appType = 'vibe' }: TeamCardProps) {
 
   const href = appType === 'ceremonies'
     ? `/teams/${team.id}`
-    : `/pulse/admin/teams/${team.id}`
+    : `/vibe/admin/teams/${team.id}`
 
   return (
     <Link href={href} aria-label={`View team ${team.name}`}>

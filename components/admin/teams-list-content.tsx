@@ -18,7 +18,7 @@ export function TeamsListContent({ teams, appType = 'vibe' }: TeamsListContentPr
 
   const newTeamHref = appType === 'ceremonies'
     ? '/teams/new'
-    : '/pulse/admin/teams/new'
+    : '/vibe/admin/teams/new'
 
   const title = appType === 'ceremonies' ? 'Delta Teams' : t('adminTeams')
   const subtitle = appType === 'ceremonies' ? 'Team coaching interventies' : t('adminTeamsSubtitle')
