@@ -379,19 +379,21 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
                     {/* Coach contact */}
                     <div className="px-3 py-2 border-t border-stone-100 dark:border-stone-700">
                       <div className="text-xs font-medium text-stone-400 dark:text-stone-500 mb-2">{t('needCoach')}</div>
-                      <div className="flex items-center justify-between bg-stone-50 dark:bg-stone-900 rounded-md px-2 py-1.5">
-                        <span className="text-xs text-stone-600 dark:text-stone-300 truncate">info@pinkpollos.com</span>
+                      <div className="flex items-center gap-1">
+                        <div className="flex-1 bg-stone-50 dark:bg-stone-900 rounded-md px-2 py-1.5">
+                          <span className="text-xs text-stone-600 dark:text-stone-300 truncate block">pulse-labs.io/contact</span>
+                        </div>
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
-                            navigator.clipboard.writeText('info@pinkpollos.com')
+                            navigator.clipboard.writeText('https://pulse-labs.io/contact')
                             setEmailCopied(true)
                             setTimeout(() => setEmailCopied(false), 2000)
                           }}
-                          className="text-xs px-1.5 py-0.5 rounded bg-stone-200 dark:bg-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors ml-1"
+                          className="text-xs px-2 py-1.5 rounded-md bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors whitespace-nowrap"
                         >
-                          {emailCopied ? '✓' : t('shareCopy')}
+                          {emailCopied ? t('shareCopied') : t('copyLink')}
                         </button>
                       </div>
                     </div>
