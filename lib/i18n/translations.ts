@@ -702,6 +702,8 @@ export const translations = {
     contactSuccessMessage: 'Bedankt voor je bericht. We nemen zo snel mogelijk contact met je op.',
     contactError: 'Er ging iets mis bij het verzenden. Probeer het opnieuw.',
     contactBackToTeams: 'Terug naar teams',
+    contactCaptchaLabel: 'Beveiligingsvraag',
+    contactCaptchaError: 'Onjuist antwoord op de beveiligingsvraag.',
   },
 
   en: {
@@ -1407,6 +1409,8 @@ export const translations = {
     contactSuccessMessage: 'Thank you for your message. We will get back to you as soon as possible.',
     contactError: 'Something went wrong. Please try again.',
     contactBackToTeams: 'Back to teams',
+    contactCaptchaLabel: 'Security question',
+    contactCaptchaError: 'Incorrect answer to the security question.',
   },
 } as const
 

@@ -1,10 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/lib/i18n/context'
 import { Button } from '@/components/ui/button'
 import { AdminHeader } from '@/components/admin/header'
+
+// Generate random math challenge
+function generateMathChallenge() {
+  const num1 = Math.floor(Math.random() * 10) + 1 // 1-10
+  const num2 = Math.floor(Math.random() * 10) + 1 // 1-10
+  return { num1, num2, answer: num1 + num2 }
+}
 
 export default function ContactPage() {
   const t = useTranslation()
@@ -12,11 +19,15 @@ export default function ContactPage() {
   const [email, setEmail] = useState('')
   const [team, setTeam] = useState('')
   const [message, setMessage] = useState('')
+  const [captchaInput, setCaptchaInput] = useState('')
   const [honeypot, setHoneypot] = useState('') // Spam protection - should remain empty
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loadTime] = useState(Date.now()) // Track when form was loaded
+
+  // Generate math challenge once on mount
+  const mathChallenge = useMemo(() => generateMathChallenge(), [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,6 +43,12 @@ export default function ContactPage() {
     // Time check - if submitted too quickly (< 3 seconds), likely a bot
     if (Date.now() - loadTime < 3000) {
       setError(t('contactError'))
+      return
+    }
+
+    // CAPTCHA check
+    if (parseInt(captchaInput, 10) !== mathChallenge.answer) {
+      setError(t('contactCaptchaError'))
       return
     }
 
@@ -196,6 +213,27 @@ export default function ContactPage() {
             />
           </div>
 
+          {/* Math CAPTCHA */}
+          <div>
+            <label htmlFor="captcha" className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
+              {t('contactCaptchaLabel')} *
+            </label>
+            <div className="flex items-center gap-3">
+              <div className="px-4 py-3 bg-stone-100 dark:bg-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-mono text-lg select-none">
+                {mathChallenge.num1} + {mathChallenge.num2} =
+              </div>
+              <input
+                type="number"
+                id="captcha"
+                value={captchaInput}
+                onChange={(e) => setCaptchaInput(e.target.value)}
+                placeholder="?"
+                required
+                className="w-24 px-4 py-3 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-center text-lg"
+              />
+            </div>
+          </div>
+
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
               {error}
@@ -205,7 +243,7 @@ export default function ContactPage() {
           <Button
             type="submit"
             loading={submitting}
-            disabled={!name.trim() || !email.trim() || !message.trim()}
+            disabled={!name.trim() || !email.trim() || !message.trim() || !captchaInput}
             className="w-full"
           >
             {submitting ? t('contactSending') : t('contactSend')}
