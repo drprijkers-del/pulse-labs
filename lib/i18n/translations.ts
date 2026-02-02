@@ -527,6 +527,10 @@ export const translations = {
     onboardingStep3Hint: 'Sluit een sessie af om resultaten te zien',
     onboardingTestLink: 'Test link',
     onboardingUseShareLink: 'Gebruik share link ↑',
+    vibeOnboardingTitle: 'Start met Vibe',
+    vibeOnboardingSubtitle: 'Meet de dagelijkse sfeer in je team',
+    ceremoniesOnboardingTitle: 'Start met Ceremonies',
+    ceremoniesOnboardingSubtitle: 'Voer team health checks uit',
     onboardingStartSession: 'Start sessie',
 
     // Empty state
@@ -1082,6 +1086,10 @@ export const translations = {
     onboardingStep3Hint: 'Close a session to see results',
     onboardingTestLink: 'Test link',
     onboardingUseShareLink: 'Use share link ↑',
+    vibeOnboardingTitle: 'Get started with Vibe',
+    vibeOnboardingSubtitle: 'Measure daily team mood',
+    ceremoniesOnboardingTitle: 'Get started with Ceremonies',
+    ceremoniesOnboardingSubtitle: 'Run team health checks',
     onboardingStartSession: 'Start session',
 
     // Empty state

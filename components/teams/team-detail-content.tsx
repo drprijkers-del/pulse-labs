@@ -279,6 +279,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
       <GettingStartedChecklist
         teamId={team.id}
         teamSlug={team.slug}
+        activeTab={activeTab}
         hasPulseEntries={(team.vibe?.participant_count || 0) > 0}
         hasCeremonySessions={(team.ceremonies?.total_sessions || 0) > 0}
         hasClosedSessions={(team.ceremonies?.closed_sessions || 0) > 0}
