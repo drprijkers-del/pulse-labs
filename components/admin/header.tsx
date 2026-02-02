@@ -18,7 +18,7 @@ interface AdminHeaderProps {
   allTeams?: Team[]
 }
 
-type NavMode = 'vibe' | 'ceremonies' | 'feedback' | 'coach' | 'modules' | 'settings'
+type NavMode = 'home' | 'vibe' | 'ceremonies' | 'feedback' | 'coach' | 'modules' | 'settings'
 
 // Inner component that uses useSearchParams
 function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
@@ -40,11 +40,11 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
   // Check if we're on a team detail page
   const isOnTeamPage = pathname.startsWith('/teams/') && pathname !== '/teams' && !pathname.endsWith('/new')
 
-  // Determine active mode from URL (default to 'vibe' on team pages)
+  // Determine active mode from URL (default to 'home' on team pages)
   const currentTab = searchParams.get('tab') as NavMode | null
-  const activeMode: NavMode = currentTab && ['vibe', 'ceremonies', 'feedback', 'coach', 'modules', 'settings'].includes(currentTab)
+  const activeMode: NavMode = currentTab && ['home', 'vibe', 'ceremonies', 'feedback', 'coach', 'modules', 'settings'].includes(currentTab)
     ? currentTab as NavMode
-    : isOnTeamPage ? 'vibe' : 'vibe'
+    : isOnTeamPage ? 'home' : 'home'
 
   useEffect(() => {
     setMounted(true)
@@ -93,7 +93,8 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
   }
 
   // Primary tabs shown directly in navbar
-  const primaryModes: { key: NavMode; label: string }[] = [
+  const primaryModes: { key: NavMode; label: string; icon?: boolean }[] = [
+    { key: 'home', label: t('dashboardTab'), icon: true },
     { key: 'vibe', label: t('teamsDetailVibe') },
     { key: 'ceremonies', label: t('teamsDetailCeremonies') },
     { key: 'feedback', label: t('feedbackTitle') },
@@ -183,8 +184,8 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
               </div>
             )}
 
-            {/* Desktop: Mode Navigation (only on team pages) */}
-            {isOnTeamPage && currentTeam && (
+            {/* Desktop: Mode Navigation (only on team pages, hidden on dashboard) */}
+            {isOnTeamPage && currentTeam && activeMode !== 'home' && (
               <div className="hidden md:flex items-center gap-1 ml-4 border-l border-stone-200 dark:border-stone-700 pl-4">
                 {/* Primary tabs */}
                 {primaryModes.map(({ key, label }) => (

@@ -536,6 +536,17 @@ ON CONFLICT (email) DO UPDATE SET
   role = 'super_admin',
   password_hash = '$2b$10$KIfUG2PHs0YrEDyWsHUN1O2OVVfdRxjMCBdpuetuvkAAlGewbikcC';
 
+-- Test account 2 (password: 1234)
+INSERT INTO admin_users (email, role, password_hash)
+VALUES (
+  'test2@pinkpollos.com',
+  'scrum_master',
+  '$2b$10$KIfUG2PHs0YrEDyWsHUN1O2OVVfdRxjMCBdpuetuvkAAlGewbikcC'
+)
+ON CONFLICT (email) DO UPDATE SET
+  role = 'scrum_master',
+  password_hash = '$2b$10$KIfUG2PHs0YrEDyWsHUN1O2OVVfdRxjMCBdpuetuvkAAlGewbikcC';
+
 -- ============================================
 -- BACKLOG & RELEASE NOTES
 -- ============================================

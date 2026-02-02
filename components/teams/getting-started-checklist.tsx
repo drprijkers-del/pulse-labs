@@ -7,7 +7,7 @@ import { useTranslation } from '@/lib/i18n/context'
 interface GettingStartedChecklistProps {
   teamId: string
   teamSlug: string
-  activeTab: 'vibe' | 'ceremonies' | 'feedback' | 'coach' | 'modules' | 'settings'
+  activeTab: 'home' | 'vibe' | 'ceremonies' | 'feedback' | 'coach' | 'modules' | 'settings'
   hasPulseEntries: boolean
   hasCeremonySessions: boolean
   hasClosedSessions: boolean
