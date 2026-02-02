@@ -446,11 +446,13 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
                 {navModes.map(({ key, label }) => (
                   <button
                     key={key}
-                    onClick={() => {
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
                       navigateToMode(key)
                       setMobileMenuOpen(false)
                     }}
-                    className={`w-full text-left px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                    className={`w-full text-left px-3 py-3 text-sm font-medium rounded-lg transition-colors touch-manipulation active:bg-stone-200 dark:active:bg-stone-700 ${
                       activeMode === key
                         ? 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400'
                         : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
@@ -468,7 +470,7 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
               {pathname === '/backlog' && (
                 <Link
                   href="/teams"
-                  className="flex items-center gap-2 px-3 py-2 mb-2 rounded-lg text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 border-b border-stone-100 dark:border-stone-800"
+                  className="flex items-center gap-2 px-3 py-3 mb-2 rounded-lg text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 active:bg-stone-100 dark:active:bg-stone-800 border-b border-stone-100 dark:border-stone-800 touch-manipulation"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -479,7 +481,7 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
               )}
               <Link
                 href="/teams"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors touch-manipulation active:bg-stone-200 dark:active:bg-stone-700 ${
                   pathname === '/teams'
                     ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100'
                     : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
@@ -493,7 +495,7 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
               </Link>
               <Link
                 href="/backlog"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors touch-manipulation active:bg-stone-200 dark:active:bg-stone-700 ${
                   pathname === '/backlog'
                     ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100'
                     : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
@@ -514,8 +516,12 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
                 <span className="text-sm text-stone-600 dark:text-stone-400">{t('language')}</span>
                 <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-0.5">
                   <button
-                    onClick={() => setLanguage('nl')}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setLanguage('nl')
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors touch-manipulation ${
                       language === 'nl'
                         ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm'
                         : 'text-stone-500 dark:text-stone-400'
@@ -524,8 +530,12 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
                     NL
                   </button>
                   <button
-                    onClick={() => setLanguage('en')}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setLanguage('en')
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors touch-manipulation ${
                       language === 'en'
                         ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm'
                         : 'text-stone-500 dark:text-stone-400'
@@ -541,8 +551,12 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
                 <span className="text-sm text-stone-600 dark:text-stone-400">{t('theme')}</span>
                 <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-0.5">
                   <button
-                    onClick={() => setTheme('light')}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setTheme('light')
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors touch-manipulation ${
                       mounted && theme === 'light'
                         ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm'
                         : 'text-stone-500 dark:text-stone-400'
@@ -551,8 +565,12 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
                     Light
                   </button>
                   <button
-                    onClick={() => setTheme('dark')}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setTheme('dark')
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors touch-manipulation ${
                       mounted && theme === 'dark'
                         ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm'
                         : 'text-stone-500 dark:text-stone-400'
@@ -568,14 +586,18 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
             <div className="p-2 border-t border-stone-200 dark:border-stone-700">
               <a
                 href="mailto:info@pinkpollos.com?subject=Pulse%20-%20Coaching%20Request"
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-colors"
+                className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 active:bg-cyan-100 dark:active:bg-cyan-900/40 transition-colors touch-manipulation"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t('needCoach')}
               </a>
               <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleLogout()
+                }}
+                className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/40 transition-colors touch-manipulation"
               >
                 {t('adminLogout')}
               </button>
