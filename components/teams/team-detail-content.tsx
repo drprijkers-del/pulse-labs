@@ -526,8 +526,10 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('shareResultsTitle')}</div>
-                  <div className="text-xs text-stone-500 dark:text-stone-400">{t('shareResultsDescription')}</div>
+                  <div className="text-xs text-stone-500 dark:text-stone-400 truncate">{shareUrl.replace('/vibe/t/', '/results/')}</div>
                 </div>
+              </div>
+              <div className="flex gap-2 mt-3">
                 <Button
                   variant="secondary"
                   size="sm"
@@ -535,8 +537,20 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                     const resultsUrl = shareUrl.replace('/vibe/t/', '/results/')
                     navigator.clipboard.writeText(resultsUrl)
                   }}
+                  className="flex-1"
                 >
                   {t('shareCopy')}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    const resultsUrl = shareUrl.replace('/vibe/t/', '/results/')
+                    window.open(resultsUrl, '_blank')
+                  }}
+                  className="flex-1"
+                >
+                  {t('shareOpen')}
                 </Button>
               </div>
             </div>
@@ -645,8 +659,10 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('shareResultsTitle')}</div>
-                          <div className="text-xs text-stone-500 dark:text-stone-400">{t('shareResultsDescription')}</div>
+                          <div className="text-xs text-stone-500 dark:text-stone-400 truncate">{shareUrl.replace('/vibe/t/', '/results/')}</div>
                         </div>
+                      </div>
+                      <div className="flex gap-2 mt-2">
                         <Button
                           variant="secondary"
                           size="sm"
@@ -654,8 +670,20 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                             const resultsUrl = shareUrl.replace('/vibe/t/', '/results/')
                             navigator.clipboard.writeText(resultsUrl)
                           }}
+                          className="flex-1"
                         >
                           {t('shareCopy')}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            const resultsUrl = shareUrl.replace('/vibe/t/', '/results/')
+                            window.open(resultsUrl, '_blank')
+                          }}
+                          className="flex-1"
+                        >
+                          {t('shareOpen')}
                         </Button>
                       </div>
                     </div>
