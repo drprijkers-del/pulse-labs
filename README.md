@@ -1,4 +1,4 @@
-# Pink Pollos Mood App
+# Pulse Labs
 
 Een **Agile Team Mood App** als losse tool binnen de Pink Pollos Lab-omgeving. Track je team's dagelijkse mood en verbeter de teamdynamiek.
 
@@ -23,8 +23,8 @@ Een **Agile Team Mood App** als losse tool binnen de Pink Pollos Lab-omgeving. T
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/drprijkers-del/mood-app.git
-cd mood-app
+git clone https://github.com/drprijkers-del/pulse-labs.git
+cd pulse-labs
 npm install
 ```
 
@@ -75,7 +75,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ## Project Structure
 
 ```
-mood-app/
+pulse-labs/
 ├── app/
 │   ├── admin/           # Admin pages
 │   │   ├── login/
