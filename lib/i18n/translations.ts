@@ -156,6 +156,11 @@ export const translations = {
     shareResetYes: 'Ja, reset',
     shareResetSuccess: 'Nieuwe formule gegenereerd',
     shareNoLink: 'Geen actieve link',
+    shareLoading: 'Link laden...',
+    shareLoadingDetail: 'Even geduld...',
+    shareNotCreated: 'Nog geen link',
+    shareNotCreatedDetail: 'Maak een link om met je team te delen',
+    shareCreate: 'Link maken',
 
     // Team actions
     teamDelete: 'Verwijderen',
@@ -700,6 +705,11 @@ export const translations = {
     shareResetYes: 'Yes, reset',
     shareResetSuccess: 'New formula generated',
     shareNoLink: 'No active link',
+    shareLoading: 'Loading link...',
+    shareLoadingDetail: 'Please wait...',
+    shareNotCreated: 'No link yet',
+    shareNotCreatedDetail: 'Create a link to share with your team',
+    shareCreate: 'Create link',
 
     // Team actions
     teamDelete: 'Delete',

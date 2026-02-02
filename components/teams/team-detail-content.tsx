@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { UnifiedTeam, enableTool, disableTool, deleteTeam, exportPulseData } from '@/domain/teams/actions'
+import { UnifiedTeam, enableTool, disableTool, deleteTeam, exportPulseData, getShareLink } from '@/domain/teams/actions'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/lib/i18n/context'
 import { GettingStartedChecklist } from '@/components/teams/getting-started-checklist'
@@ -59,6 +59,8 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
   const [loading, setLoading] = useState<string | null>(null)
   const [showCompare, setShowCompare] = useState(false)
   const [showVibeAdvanced, setShowVibeAdvanced] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [shareLoading, setShareLoading] = useState(false)
 
   // Update tab when URL changes (e.g., browser back/forward)
   useEffect(() => {
@@ -70,6 +72,28 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
       }
     }
   }, [searchParams, team.tools_enabled])
+
+  // Fetch or create share link for Vibe
+  const handleGetShareLink = async () => {
+    setShareLoading(true)
+    try {
+      const result = await getShareLink(team.id)
+      if (result) {
+        setShareUrl(result.url)
+      }
+    } catch (error) {
+      console.error('Failed to get share link:', error)
+    }
+    setShareLoading(false)
+  }
+
+  // Auto-fetch share link when vibe is enabled (on initial load)
+  useEffect(() => {
+    if (team.vibe) {
+      handleGetShareLink()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [team.id])
 
   const handleEnableTool = async (tool: 'vibe' | 'ceremonies') => {
     setLoading(`enable-${tool}`)
@@ -269,35 +293,60 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('shareReady')}</div>
-                    <div className="text-xs text-stone-500 dark:text-stone-400 truncate">/t/{team.slug}</div>
+                    {shareUrl ? (
+                      <>
+                        <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('shareReady')}</div>
+                        <div className="text-xs text-stone-500 dark:text-stone-400 truncate">{shareUrl}</div>
+                      </>
+                    ) : shareLoading ? (
+                      <>
+                        <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('shareLoading')}</div>
+                        <div className="text-xs text-stone-500 dark:text-stone-400">{t('shareLoadingDetail')}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('shareNotCreated')}</div>
+                        <div className="text-xs text-stone-500 dark:text-stone-400">{t('shareNotCreatedDetail')}</div>
+                      </>
+                    )}
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        const baseUrl = window.location.origin
-                        navigator.clipboard.writeText(`${baseUrl}/t/${team.slug}`)
-                      }}
-                    >
-                      {t('shareCopy')}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => window.open(`/t/${team.slug}`, '_blank')}
-                    >
-                      {t('shareOpen')}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setShowVibeAdvanced(!showVibeAdvanced)}
-                      className={showVibeAdvanced ? 'bg-stone-100 dark:bg-stone-700' : ''}
-                    >
-                      {t('shareAdvanced')}
-                    </Button>
+                    {shareUrl ? (
+                      <>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(shareUrl)
+                          }}
+                        >
+                          {t('shareCopy')}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => window.open(shareUrl, '_blank')}
+                        >
+                          {t('shareOpen')}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setShowVibeAdvanced(!showVibeAdvanced)}
+                          className={showVibeAdvanced ? 'bg-stone-100 dark:bg-stone-700' : ''}
+                        >
+                          {t('shareAdvanced')}
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={handleGetShareLink}
+                        loading={shareLoading}
+                        size="sm"
+                      >
+                        {t('shareCreate')}
+                      </Button>
+                    )}
                   </div>
                 </div>
 
