@@ -442,17 +442,24 @@ function StatementRow({ item, rank, t }: { item: StatementScore; rank: number; t
         </div>
       </div>
 
-      {/* Distribution bars */}
+      {/* Distribution bars - colors match score thresholds */}
       <div className="flex items-end gap-1 h-8 ml-13">
-        {item.distribution.map((count, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center">
-            <div
-              className={`w-full rounded-t ${i < 2 ? 'bg-red-300 dark:bg-red-600' : i === 2 ? 'bg-amber-300 dark:bg-amber-600' : 'bg-green-300 dark:bg-green-600'}`}
-              style={{ height: `${(count / maxDist) * 24}px`, minHeight: count > 0 ? '4px' : '0' }}
-            />
-            <span className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">{i + 1}</span>
-          </div>
-        ))}
+        {item.distribution.map((count, i) => {
+          // Match score highlighting: 1=red, 2=amber, 3=cyan, 4-5=green
+          const barColor = i === 0 ? 'bg-red-300 dark:bg-red-600'
+            : i === 1 ? 'bg-amber-300 dark:bg-amber-600'
+            : i === 2 ? 'bg-cyan-300 dark:bg-cyan-600'
+            : 'bg-green-300 dark:bg-green-600'
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center">
+              <div
+                className={`w-full rounded-t ${barColor}`}
+                style={{ height: `${(count / maxDist) * 24}px`, minHeight: count > 0 ? '4px' : '0' }}
+              />
+              <span className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">{i + 1}</span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
