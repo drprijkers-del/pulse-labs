@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 
+const AUTH_MODE = process.env.NEXT_PUBLIC_AUTH_MODE || 'password'
+
 export function LoginForm() {
   const t = useTranslation()
   const router = useRouter()
@@ -17,7 +19,9 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [emailSent, setEmailSent] = useState(false)
-  const [usePassword, setUsePassword] = useState(false)
+  const [usePassword, setUsePassword] = useState(AUTH_MODE === 'password')
+
+  const showAuthToggle = AUTH_MODE === 'magic-link'
 
   const unauthorized = searchParams.get('error') === 'unauthorized'
   const redirectTo = searchParams.get('redirect') || '/teams'
@@ -165,15 +169,17 @@ export function LoginForm() {
           </Button>
         </form>
 
-        <div className="text-center mt-4">
-          <button
-            type="button"
-            onClick={() => setUsePassword(!usePassword)}
-            className="text-sm text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 py-2 px-4 min-h-11 rounded-lg hover:bg-cyan-50 dark:hover:bg-cyan-900/30 transition-colors"
-          >
-            {usePassword ? 'Use magic link instead' : 'Have a password? Sign in with password'}
-          </button>
-        </div>
+        {showAuthToggle && (
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={() => setUsePassword(!usePassword)}
+              className="text-sm text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 py-2 px-4 min-h-11 rounded-lg hover:bg-cyan-50 dark:hover:bg-cyan-900/30 transition-colors"
+            >
+              {usePassword ? 'Use magic link instead' : 'Have a password? Sign in with password'}
+            </button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
