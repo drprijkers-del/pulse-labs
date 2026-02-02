@@ -85,8 +85,19 @@ export function FeedbackForm({ teamSlug, teamName, tokenHash }: FeedbackFormProp
           <p className="text-stone-600 dark:text-stone-400 mb-4">
             {t('feedbackThankYouMessage')}
           </p>
-          <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+          <p className="text-xs text-stone-400 dark:text-stone-500 italic mb-6">
             {t('feedbackUsedForConversation')}
+          </p>
+
+          {/* Close button */}
+          <button
+            onClick={() => window.close()}
+            className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+          >
+            {t('closePage')}
+          </button>
+          <p className="text-xs text-stone-400 dark:text-stone-500 mt-2">
+            {t('closeThisPage')}
           </p>
         </div>
       </div>

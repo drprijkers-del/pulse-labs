@@ -200,6 +200,8 @@ export const translations = {
     wishConfirmation: 'Je idee is toegevoegd aan onze review lijst.',
     wishClose: 'Sluiten',
     wishAddButton: 'Idee toevoegen',
+    closeThisPage: 'Je kunt dit tabblad sluiten',
+    closePage: 'Sluit pagina',
 
     // Ceremonies - Angle labels
     angleScrum: 'Scrum',
@@ -884,6 +886,8 @@ export const translations = {
     wishConfirmation: 'Your idea has been added to our review list.',
     wishClose: 'Close',
     wishAddButton: 'Add idea',
+    closeThisPage: 'You can close this tab',
+    closePage: 'Close page',
 
     // Ceremonies - Angle labels
     angleScrum: 'Scrum',

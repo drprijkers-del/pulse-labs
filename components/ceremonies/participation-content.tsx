@@ -135,8 +135,19 @@ export function ParticipationContent({
               </svg>
             </div>
             <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-2">{t('alreadyResponded')}</h1>
-            <p className="text-stone-500 dark:text-stone-400">
+            <p className="text-stone-500 dark:text-stone-400 mb-6">
               {t('alreadyRespondedMessage')}
+            </p>
+
+            {/* Close button */}
+            <button
+              onClick={() => window.close()}
+              className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
+            >
+              {t('closePage')}
+            </button>
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
+              {t('closeThisPage')}
             </p>
           </CardContent>
         </Card>
@@ -202,8 +213,19 @@ export function ParticipationContent({
               </div>
             )}
 
-            <p className="text-center text-xs text-stone-400 dark:text-stone-500 mt-6">
+            <p className="text-center text-xs text-stone-400 dark:text-stone-500 mt-6 mb-4">
               {t('thankYouParticipation')}
+            </p>
+
+            {/* Close button */}
+            <button
+              onClick={() => window.close()}
+              className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
+            >
+              {t('closePage')}
+            </button>
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
+              {t('closeThisPage')}
             </p>
           </CardContent>
         </Card>
@@ -351,13 +373,24 @@ export function ParticipationContent({
             </p>
 
             {/* Level badge */}
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${levelColors[ceremonyLevel].light}`}>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${levelColors[ceremonyLevel].light} mb-4`}>
               <span className={`text-lg font-bold ${levelColors[ceremonyLevel].text}`}>{levelInfo.kanji}</span>
               <span className={`text-sm ${levelColors[ceremonyLevel].text}`}>{levelInfo.label} Level</span>
             </div>
 
-            <p className="text-xs text-stone-500 dark:text-stone-400 mt-4">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mb-6">
               {t('resultsSharedLater')}
+            </p>
+
+            {/* Close button */}
+            <button
+              onClick={() => window.close()}
+              className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
+            >
+              {t('closePage')}
+            </button>
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
+              {t('closeThisPage')}
             </p>
           </CardContent>
         </Card>

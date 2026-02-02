@@ -174,7 +174,7 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
 
           {/* Team stats */}
           {stats && stats.total_entries > 0 && (
-            <div className="bg-white dark:bg-stone-800 rounded-2xl p-5 border border-stone-200 dark:border-stone-700">
+            <div className="bg-white dark:bg-stone-800 rounded-2xl p-5 border border-stone-200 dark:border-stone-700 mb-6">
               <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-4">{t('successTeamToday')}</p>
               <div className="flex justify-center gap-8">
                 <div className="text-center">
@@ -196,6 +196,17 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
               </div>
             </div>
           )}
+
+          {/* Close button */}
+          <button
+            onClick={() => window.close()}
+            className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+          >
+            {t('closePage')}
+          </button>
+          <p className="text-xs text-stone-400 dark:text-stone-500 mt-2">
+            {t('closeThisPage')}
+          </p>
         </div>
       </main>
 

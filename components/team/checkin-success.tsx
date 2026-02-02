@@ -192,8 +192,19 @@ export function CheckinSuccess({ mood, streak, teamStats, teamName }: CheckinSuc
           </div>
 
           {/* Return message */}
-          <p className="text-stone-400 dark:text-stone-500 text-sm">
+          <p className="text-stone-400 dark:text-stone-500 text-sm mb-6">
             {t('successSeeYouTomorrow')}
+          </p>
+
+          {/* Close button */}
+          <button
+            onClick={() => window.close()}
+            className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+          >
+            {t('closePage')}
+          </button>
+          <p className="text-xs text-stone-400 dark:text-stone-500 mt-2">
+            {t('closeThisPage')}
           </p>
         </div>
       </main>
