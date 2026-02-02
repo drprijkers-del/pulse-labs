@@ -223,8 +223,21 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
             {/* Spacer */}
             <div className="flex-1" />
 
+            {/* Need a coach? link - always visible */}
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText('info@pinkpollos.com')
+                alert('Email gekopieerd: info@pinkpollos.com\n\nStuur een mail met onderwerp: Pulse - Coaching Request')
+              }}
+              className="px-3 py-1.5 text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors border border-cyan-200 dark:border-cyan-800 cursor-pointer"
+            >
+              {t('needCoach')}
+            </button>
+
             {/* Desktop: Right Side Actions */}
             <div className="hidden md:flex items-center gap-2">
+
               {/* Backlog link - only show when on team page (global nav handles it otherwise) */}
               {isOnTeamPage && (
                 <Link
@@ -504,15 +517,13 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
 
             {/* Contact & Logout */}
             <div className="p-2 border-t border-stone-200 dark:border-stone-700">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  setShowExpertModal(true)
-                }}
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              <a
+                href="mailto:info@pinkpollos.com?subject=Pulse%20-%20Coaching%20Request"
+                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
               >
-                {t('contactExpert')}
-              </button>
+                {t('needCoach')}
+              </a>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"

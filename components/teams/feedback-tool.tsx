@@ -1,193 +1,340 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/lib/i18n/context'
+import { getFeedbackShareLink, deactivateFeedbackLink, getTeamFeedbackGrouped, clearTeamFeedback, type TeamFeedback } from '@/domain/feedback/actions'
 
 interface FeedbackToolProps {
   teamId: string
   teamName: string
 }
 
-type FeedbackType = 'appreciation' | 'suggestion' | 'concern'
-
-const FEEDBACK_TYPES: { key: FeedbackType; label: string; emoji: string; color: string }[] = [
-  { key: 'appreciation', label: 'Waardering', emoji: '🌟', color: 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700' },
-  { key: 'suggestion', label: 'Suggestie', emoji: '💡', color: 'bg-cyan-100 dark:bg-cyan-900/30 border-cyan-300 dark:border-cyan-700' },
-  { key: 'concern', label: 'Zorg', emoji: '🤔', color: 'bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700' },
-]
+// Updated prompt labels to match new coaching-oriented prompts
+const PROMPT_LABELS: Record<string, { nl: string; en: string; icon: string; color: string }> = {
+  helps_collaboration: { nl: 'Wat helpt onze samenwerking', en: 'What helps our collaboration', icon: '✓', color: 'green' },
+  gets_in_way: { nl: 'Wat staat soms in de weg', en: 'What sometimes gets in the way', icon: '↗', color: 'amber' },
+  awareness: { nl: 'Iets om bewust van te zijn', en: 'Something to be aware of', icon: '○', color: 'purple' },
+  // Legacy support for old prompts
+  working_well: { nl: 'Wat gaat goed', en: 'What is working well', icon: '✓', color: 'green' },
+  could_improve: { nl: 'Wat kan beter', en: 'What could improve', icon: '↗', color: 'amber' },
+  other: { nl: 'Overig', en: 'Other', icon: '…', color: 'stone' },
+}
 
 export function FeedbackTool({ teamId, teamName }: FeedbackToolProps) {
   const t = useTranslation()
-  const [feedbackType, setFeedbackType] = useState<FeedbackType>('appreciation')
-  const [recipient, setRecipient] = useState('')
-  const [message, setMessage] = useState('')
-  const [isAnonymous, setIsAnonymous] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [shareLoading, setShareLoading] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [feedback, setFeedback] = useState<Record<string, TeamFeedback[]>>({})
+  const [feedbackLoading, setFeedbackLoading] = useState(true)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!message.trim()) return
+  // Load share link and feedback on mount
+  useEffect(() => {
+    loadFeedback()
+  }, [teamId])
 
-    setSubmitting(true)
-
-    // Simulate submission (actual implementation would save to database)
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    setSubmitting(false)
-    setSubmitted(true)
-
-    // Reset after showing success
-    setTimeout(() => {
-      setSubmitted(false)
-      setMessage('')
-      setRecipient('')
-    }, 3000)
+  const loadFeedback = async () => {
+    setFeedbackLoading(true)
+    try {
+      const grouped = await getTeamFeedbackGrouped(teamId)
+      setFeedback(grouped)
+    } catch (error) {
+      console.error('Failed to load feedback:', error)
+    }
+    setFeedbackLoading(false)
   }
 
-  if (submitted) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-5xl mb-4">✨</div>
-        <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">
-          Feedback verzonden!
-        </h3>
-        <p className="text-stone-500 dark:text-stone-400 text-sm">
-          {isAnonymous ? 'Je anonieme feedback is gedeeld.' : 'Je feedback is gedeeld met het team.'}
-        </p>
-      </div>
-    )
+  const handleGetShareLink = async () => {
+    setShareLoading(true)
+    try {
+      const result = await getFeedbackShareLink(teamId)
+      if (result) {
+        setShareUrl(result.url)
+      }
+    } catch (error) {
+      console.error('Failed to get share link:', error)
+    }
+    setShareLoading(false)
   }
+
+  const handleDeactivateLink = async () => {
+    if (!confirm(t('feedbackDeactivateConfirm'))) return
+    setShareLoading(true)
+    const result = await deactivateFeedbackLink(teamId)
+    if (result.success) {
+      setShareUrl(null)
+      setShowAdvanced(false)
+    } else {
+      alert(result.error || 'Kon link niet deactiveren')
+    }
+    setShareLoading(false)
+  }
+
+  const handleArchiveFeedback = async () => {
+    if (!confirm(t('feedbackArchiveConfirm'))) return
+    const result = await clearTeamFeedback(teamId)
+    if (result.success) {
+      setFeedback({})
+    } else {
+      alert(result.error || 'Kon feedback niet archiveren')
+    }
+  }
+
+  const totalFeedbackCount = Object.values(feedback).flat().length
 
   return (
     <div className="space-y-6">
-      {/* Feedback Rules Reminder */}
-      <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
-        <h4 className="font-medium text-purple-900 dark:text-purple-300 mb-3 flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {t('feedbackRules')}
-        </h4>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-start gap-2 text-xs text-purple-700 dark:text-purple-300">
-            <span className="text-purple-500">1.</span>
-            <span>{t('feedbackRule1')}</span>
-          </div>
-          <div className="flex items-start gap-2 text-xs text-purple-700 dark:text-purple-300">
-            <span className="text-purple-500">2.</span>
-            <span>{t('feedbackRule2')}</span>
-          </div>
-          <div className="flex items-start gap-2 text-xs text-purple-700 dark:text-purple-300">
-            <span className="text-purple-500">3.</span>
-            <span>{t('feedbackRule3')}</span>
-          </div>
-          <div className="flex items-start gap-2 text-xs text-purple-700 dark:text-purple-300">
-            <span className="text-purple-500">4.</span>
-            <span>{t('feedbackRule4')}</span>
-          </div>
-        </div>
+      {/* Coach Role Guidance */}
+      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800 p-4">
+        <h4 className="font-medium text-purple-900 dark:text-purple-300 mb-2 text-sm">{t('feedbackFacilitatorRole')}</h4>
+        <ul className="space-y-1.5 text-xs text-purple-700 dark:text-purple-400">
+          <li className="flex items-start gap-2">
+            <span className="text-purple-400 mt-0.5">•</span>
+            <span>{t('feedbackFacilitator1')}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-purple-400 mt-0.5">•</span>
+            <span>{t('feedbackFacilitator2')}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-purple-400 mt-0.5">•</span>
+            <span>{t('feedbackFacilitator3')}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-purple-400 mt-0.5">•</span>
+            <span>{t('feedbackFacilitator4')}</span>
+          </li>
+        </ul>
       </div>
 
-      {/* Feedback Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Feedback Type */}
-        <div>
-          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
-            Type feedback
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {FEEDBACK_TYPES.map(type => (
-              <button
-                key={type.key}
-                type="button"
-                onClick={() => setFeedbackType(type.key)}
-                className={`p-3 rounded-lg border-2 text-center transition-all ${
-                  feedbackType === type.key
-                    ? `${type.color} border-current`
-                    : 'bg-stone-50 dark:bg-stone-700 border-transparent hover:border-stone-300 dark:hover:border-stone-500'
-                }`}
+      {/* Primary CTA: Create Feedback Link */}
+      <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+        <div className="flex items-center gap-3 p-4">
+          <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            {shareUrl ? (
+              <>
+                <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('feedbackLinkReady')}</div>
+                <div className="text-xs text-stone-500 dark:text-stone-400 truncate">{shareUrl}</div>
+              </>
+            ) : shareLoading ? (
+              <>
+                <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('shareLoading')}</div>
+                <div className="text-xs text-stone-500 dark:text-stone-400">{t('shareLoadingDetail')}</div>
+              </>
+            ) : (
+              <>
+                <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('feedbackLinkCreate')}</div>
+                <div className="text-xs text-stone-500 dark:text-stone-400">{t('feedbackLinkInvite')}</div>
+              </>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {shareUrl ? (
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareUrl)
+                  }}
+                >
+                  {t('shareCopy')}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => window.open(shareUrl, '_blank')}
+                >
+                  {t('shareOpen')}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className={showAdvanced ? 'bg-stone-100 dark:bg-stone-700' : ''}
+                >
+                  {t('shareAdvanced')}
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={handleGetShareLink}
+                loading={shareLoading}
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700"
               >
-                <div className="text-2xl mb-1">{type.emoji}</div>
-                <div className="text-xs font-medium text-stone-700 dark:text-stone-300">{type.label}</div>
-              </button>
-            ))}
+                {t('feedbackCreateLink')}
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* Recipient (optional) */}
-        <div>
-          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
-            Voor wie? <span className="text-stone-400 font-normal">(optioneel)</span>
-          </label>
-          <input
-            type="text"
-            value={recipient}
-            onChange={e => setRecipient(e.target.value)}
-            placeholder="Naam of 'het team'"
-            className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-          />
-        </div>
+        {/* Link context */}
+        {!shareUrl && !shareLoading && (
+          <div className="px-4 pb-4">
+            <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+              {t('feedbackLinkContext')}
+            </p>
+          </div>
+        )}
 
-        {/* Message */}
-        <div>
-          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
-            Je feedback
-          </label>
-          <textarea
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            placeholder={
-              feedbackType === 'appreciation' ? "Wat waardeer je? Wees specifiek over wat je hebt gezien..." :
-              feedbackType === 'suggestion' ? "Welke suggestie heb je? Wat zou je willen zien veranderen..." :
-              "Waar maak je je zorgen over? Wat heb je geobserveerd..."
-            }
-            rows={4}
-            className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
-            required
-          />
-        </div>
+        {/* Advanced panel */}
+        {showAdvanced && (
+          <div className="border-t border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4 space-y-4">
+            {/* Reset Link */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('feedbackResetTitle')}</div>
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">{t('feedbackResetInfo')}</p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={async () => {
+                    if (!confirm(t('feedbackResetConfirm'))) return
+                    setShareUrl(null)
+                    await handleGetShareLink()
+                  }}
+                  loading={shareLoading}
+                  className="text-amber-600 hover:text-amber-700 mt-2"
+                >
+                  {t('feedbackResetButton')}
+                </Button>
+              </div>
+            </div>
 
-        {/* Anonymous toggle */}
-        <div className="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-700 rounded-lg">
+            {/* Deactivate Link */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-stone-700 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-stone-500 dark:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('feedbackPauseTitle')}</div>
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">{t('feedbackPauseInfo')}</p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleDeactivateLink}
+                  loading={shareLoading}
+                  className="text-stone-500 hover:text-stone-700 mt-2"
+                >
+                  {t('feedbackPauseButton')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Collected Feedback Display */}
+      <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-stone-200 dark:border-stone-700">
           <div>
-            <div className="text-sm font-medium text-stone-700 dark:text-stone-300">Anoniem delen</div>
-            <div className="text-xs text-stone-500 dark:text-stone-400">Je naam wordt niet getoond</div>
+            <h4 className="font-medium text-stone-900 dark:text-stone-100">{t('feedbackCollected')}</h4>
+            {totalFeedbackCount > 0 && (
+              <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+                {t('feedbackReadAs')}
+              </p>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={() => setIsAnonymous(!isAnonymous)}
-            className={`w-12 h-7 rounded-full transition-colors relative ${
-              isAnonymous ? 'bg-cyan-500' : 'bg-stone-300 dark:bg-stone-600'
-            }`}
-          >
-            <span
-              className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                isAnonymous ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
+          {totalFeedbackCount > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-stone-400">{totalFeedbackCount}</span>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleArchiveFeedback}
+                className="text-stone-400 hover:text-stone-600 text-xs"
+              >
+                {t('feedbackArchive')}
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Submit */}
-        <Button
-          type="submit"
-          disabled={!message.trim()}
-          loading={submitting}
-          className="w-full"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-          Feedback delen
-        </Button>
-      </form>
+        {feedbackLoading ? (
+          <div className="p-8 text-center text-stone-400">
+            {t('loading')}
+          </div>
+        ) : totalFeedbackCount === 0 ? (
+          <div className="p-8 text-center">
+            <div className="text-stone-300 dark:text-stone-600 mb-3">
+              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <p className="text-sm text-stone-500 dark:text-stone-400">{t('feedbackEmptyState')}</p>
+            <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">{t('feedbackEmptyStateHint')}</p>
+          </div>
+        ) : (
+          <>
+            <div className="divide-y divide-stone-100 dark:divide-stone-700/50">
+              {Object.entries(PROMPT_LABELS).map(([key, label]) => {
+                const items = feedback[key] || []
+                if (items.length === 0) return null
 
-      {/* Note about beta */}
-      <p className="text-xs text-center text-stone-400 dark:text-stone-500">
-        Dit is een preview. Feedback wordt nog niet opgeslagen.
-      </p>
+                const colorStyles = {
+                  green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800',
+                  amber: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+                  purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+                  stone: 'bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-600',
+                }
+
+                return (
+                  <div key={key} className="p-4">
+                    {/* Category header - prominent */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-medium border ${colorStyles[label.color as keyof typeof colorStyles]}`}>
+                        {label.icon}
+                      </span>
+                      <h5 className="font-medium text-stone-800 dark:text-stone-200 text-sm">
+                        {label.nl}
+                      </h5>
+                    </div>
+                    {/* Feedback items - de-emphasized individual entries */}
+                    <div className="space-y-2 ml-9">
+                      {items.map((item) => (
+                        <div
+                          key={item.id}
+                          className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed"
+                        >
+                          <p className="whitespace-pre-wrap">{item.response}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Warning note under feedback */}
+            <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border-t border-amber-200 dark:border-amber-800/50">
+              <p className="text-xs text-amber-700 dark:text-amber-400 text-center">
+                {t('feedbackPerspectiveWarning')}
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Distinction from Retro */}
+      <div className="text-center px-4">
+        <p className="text-xs text-stone-400 dark:text-stone-500 leading-relaxed">
+          {t('feedbackNotRetro')}
+        </p>
+      </div>
     </div>
   )
 }

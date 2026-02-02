@@ -194,25 +194,36 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
 
   // Calculate vibe message for display in OverallSignal (only when on Vibe tab)
   const getVibeContext = () => {
-    if (!team.vibe) return { message: null, suggestion: null }
+    if (!team.vibe) return { message: null, suggestion: null, ceremoniesHint: null }
 
     const score = team.vibe.average_score
     const hasEnoughData = vibeMetrics?.hasEnoughData ?? false
+    const hasCeremonies = team.tools_enabled.includes('ceremonies')
 
     if (!hasEnoughData || !score) {
-      return { message: t('vibeNotEnoughData'), suggestion: t('vibeShareLinkSuggestion') }
+      return { message: t('vibeNotEnoughData'), suggestion: t('vibeShareLinkSuggestion'), ceremoniesHint: null }
     } else if (score >= 4) {
-      return { message: t('vibeGreat'), suggestion: t('vibeGreatSuggestion') }
+      return { message: t('vibeGreat'), suggestion: t('vibeGreatSuggestion'), ceremoniesHint: null }
     } else if (score >= 3.2) {
-      return { message: t('vibeGood'), suggestion: t('vibeGoodSuggestion') }
+      return { message: t('vibeGood'), suggestion: t('vibeGoodSuggestion'), ceremoniesHint: null }
     } else if (score >= 2.5) {
-      return { message: t('vibeAttention'), suggestion: t('vibeAttentionSuggestion') }
+      // Show ceremonies hint when attention needed and ceremonies is enabled
+      return {
+        message: t('vibeAttention'),
+        suggestion: t('vibeAttentionSuggestion'),
+        ceremoniesHint: hasCeremonies ? t('vibeCeremoniesHint') : null
+      }
     } else {
-      return { message: t('vibeConcern'), suggestion: t('vibeConcernSuggestion') }
+      // Show ceremonies hint when vibe is low and ceremonies is enabled
+      return {
+        message: t('vibeConcern'),
+        suggestion: t('vibeConcernSuggestion'),
+        ceremoniesHint: hasCeremonies ? t('vibeCeremoniesHint') : null
+      }
     }
   }
 
-  const vibeContext = activeTab === 'vibe' ? getVibeContext() : { message: null, suggestion: null }
+  const vibeContext = activeTab === 'vibe' ? getVibeContext() : { message: null, suggestion: null, ceremoniesHint: null }
 
   return (
     <div className="space-y-6">
@@ -234,6 +245,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         ceremonyLevel={team.ceremonies?.level as CeremonyLevel | undefined}
         vibeMessage={vibeContext.message}
         vibeSuggestion={vibeContext.suggestion}
+        vibeCeremoniesHint={vibeContext.ceremoniesHint}
       />
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -287,45 +299,73 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
               {activeTab === 'modules' && t('modulesExplanation')}
               {!activeTab && t('teamDetailContext')}
             </p>
+            {/* Vibe framing - clarify what this signal means */}
+            {activeTab === 'vibe' && (
+              <div className="mt-2 space-y-1">
+                <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+                  {t('vibeFraming')}
+                </p>
+                <p className="text-xs text-stone-400 dark:text-stone-500">
+                  {t('vibeTrustNote')}
+                </p>
+              </div>
+            )}
+            {/* Ceremonies framing - exploration focus */}
+            {activeTab === 'ceremonies' && (
+              <div className="mt-2 space-y-1">
+                <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+                  {t('ceremoniesFraming')}
+                </p>
+                <p className="text-xs text-stone-400 dark:text-stone-500">
+                  {t('ceremoniesGuidance')}
+                </p>
+              </div>
+            )}
+            {/* Feedback framing - listening instrument */}
+            {activeTab === 'feedback' && (
+              <div className="mt-2 space-y-1">
+                <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+                  {t('feedbackFraming')}
+                </p>
+                <p className="text-xs text-stone-400 dark:text-stone-500">
+                  {t('feedbackGuidance')}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Shu-Ha-Ri explanation - only on ceremonies tab */}
         {activeTab === 'ceremonies' && team.ceremonies && (
-          <div className="mt-5 pt-5 border-t border-stone-100 dark:border-stone-700">
-            <h4 className="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-3">{t('shuHaRiTitle')}</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-700">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">{t('shuHaRiTitle')}</h4>
+            </div>
+            <p className="text-xs text-stone-400 dark:text-stone-500 mb-3">{t('shuHaRiIntro')}</p>
+            <div className="grid grid-cols-3 gap-2">
               {/* Shu */}
-              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg font-bold text-amber-600 dark:text-amber-400">守</span>
-                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Shu</span>
+              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-sm font-bold text-amber-600 dark:text-amber-400">守</span>
+                  <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{t('shuLabel')}</span>
                 </div>
-                <p className="text-xs text-amber-600 dark:text-amber-400">{t('shuDescription')}</p>
+                <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80">{t('shuDescription')}</p>
               </div>
               {/* Ha */}
-              <div className="p-3 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg font-bold text-cyan-600 dark:text-cyan-400">破</span>
-                  <span className="text-sm font-semibold text-cyan-700 dark:text-cyan-300">Ha</span>
-                  {(team.ceremonies?.level || 'shu') === 'shu' && <span className="text-xs">🔒</span>}
+              <div className={`p-2 rounded-lg border ${(team.ceremonies?.level || 'shu') === 'shu' ? 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 opacity-60' : 'bg-cyan-50 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-800'}`}>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className={`text-sm font-bold ${(team.ceremonies?.level || 'shu') === 'shu' ? 'text-stone-400 dark:text-stone-500' : 'text-cyan-600 dark:text-cyan-400'}`}>破</span>
+                  <span className={`text-xs font-medium ${(team.ceremonies?.level || 'shu') === 'shu' ? 'text-stone-500 dark:text-stone-400' : 'text-cyan-700 dark:text-cyan-300'}`}>{t('haLabel')}</span>
                 </div>
-                <p className="text-xs text-cyan-600 dark:text-cyan-400">{t('haDescription')}</p>
-                {(team.ceremonies?.level || 'shu') === 'shu' && (
-                  <p className="text-[10px] text-stone-500 dark:text-stone-400 mt-1.5 leading-tight"><strong>To unlock:</strong> {t('unlockHaCriteria')}</p>
-                )}
+                <p className={`text-[10px] ${(team.ceremonies?.level || 'shu') === 'shu' ? 'text-stone-400 dark:text-stone-500' : 'text-cyan-600/80 dark:text-cyan-400/80'}`}>{t('haDescription')}</p>
               </div>
               {/* Ri */}
-              <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg font-bold text-purple-600 dark:text-purple-400">離</span>
-                  <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">Ri</span>
-                  {(team.ceremonies?.level || 'shu') !== 'ri' && <span className="text-xs">🔒</span>}
+              <div className={`p-2 rounded-lg border ${(team.ceremonies?.level || 'shu') === 'ri' ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 opacity-60'}`}>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className={`text-sm font-bold ${(team.ceremonies?.level || 'shu') === 'ri' ? 'text-purple-600 dark:text-purple-400' : 'text-stone-400 dark:text-stone-500'}`}>離</span>
+                  <span className={`text-xs font-medium ${(team.ceremonies?.level || 'shu') === 'ri' ? 'text-purple-700 dark:text-purple-300' : 'text-stone-500 dark:text-stone-400'}`}>{t('riLabel')}</span>
                 </div>
-                <p className="text-xs text-purple-600 dark:text-purple-400">{t('riDescription')}</p>
-                {(team.ceremonies?.level || 'shu') === 'ha' && (
-                  <p className="text-[10px] text-stone-500 dark:text-stone-400 mt-1.5 leading-tight"><strong>To unlock:</strong> {t('unlockRiCriteria')}</p>
-                )}
+                <p className={`text-[10px] ${(team.ceremonies?.level || 'shu') === 'ri' ? 'text-purple-600/80 dark:text-purple-400/80' : 'text-stone-400 dark:text-stone-500'}`}>{t('riDescription')}</p>
               </div>
             </div>
           </div>
@@ -645,23 +685,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
 
       {/* Feedback Tab */}
       {activeTab === 'feedback' && (
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-stone-900 dark:text-stone-100">{t('feedbackTitle')}</h3>
-                <p className="text-sm text-stone-500 dark:text-stone-400">{t('feedbackSubtitle')}</p>
-              </div>
-            </div>
-
-            <FeedbackTool teamId={team.id} teamName={team.name} />
-          </div>
-        </div>
+        <FeedbackTool teamId={team.id} teamName={team.name} />
       )}
 
       {/* Coach Questions Tab */}
@@ -693,79 +717,77 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                 const todayCount = team.vibe?.today_entries || 0
                 return effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
               })()}
-              deltaTensions={[]}
+              deltaTensions={
+                // Extract tensions from closed ceremonies sessions with low scores
+                ceremoniesSessions
+                  .filter(s => s.status === 'closed' && s.overall_score != null && s.overall_score < 3.5)
+                  .map(s => ({ area: s.angle, score: s.overall_score as number }))
+                  .sort((a, b) => a.score - b.score) // Lowest scores first
+                  .slice(0, 3) // Top 3 tensions
+              }
               teamName={team.name}
             />
           </div>
         </div>
       )}
 
-      {/* Premium Modules Tab */}
+      {/* Modules Tab */}
       {activeTab === 'modules' && (
         <div className="space-y-6">
-          <div className="text-center mb-6">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-full text-sm font-semibold">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clipRule="evenodd" />
-              </svg>
-              Premium Modules
-            </span>
+          {/* Calm intro - positioning vs core flow */}
+          <div className="text-center">
+            <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">{t('modulesTitle')}</h3>
+            <p className="text-xs text-stone-400 dark:text-stone-500 italic">{t('modulesIntro')}</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {/* Obeya Module */}
-            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-5 relative overflow-hidden opacity-75 hover:opacity-100 transition-opacity">
+            <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-stone-200 dark:border-stone-700 p-5 relative overflow-hidden">
               <div className="absolute top-3 right-3">
-                <span className="px-2 py-0.5 text-xs font-medium bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 rounded-full">{t('moduleComingSoon')}</span>
+                <span className="px-2 py-0.5 text-xs text-stone-400 dark:text-stone-500">{t('moduleComingSoon')}</span>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+              <div className="w-10 h-10 rounded-lg bg-stone-200 dark:bg-stone-700 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-stone-400 dark:text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
                 </svg>
               </div>
-              <h4 className="font-semibold text-stone-900 dark:text-stone-100 mb-1">{t('moduleObeya')}</h4>
-              <p className="text-sm text-stone-500 dark:text-stone-400">{t('moduleObeyaDesc')}</p>
+              <h4 className="font-medium text-stone-700 dark:text-stone-300 text-sm mb-1">{t('moduleObeya')}</h4>
+              <p className="text-xs text-stone-500 dark:text-stone-400">{t('moduleObeyaDesc')}</p>
             </div>
 
             {/* Leadership Module */}
-            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-5 relative overflow-hidden opacity-75 hover:opacity-100 transition-opacity">
+            <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-stone-200 dark:border-stone-700 p-5 relative overflow-hidden">
               <div className="absolute top-3 right-3">
-                <span className="px-2 py-0.5 text-xs font-medium bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 rounded-full">{t('moduleComingSoon')}</span>
+                <span className="px-2 py-0.5 text-xs text-stone-400 dark:text-stone-500">{t('moduleComingSoon')}</span>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <div className="w-10 h-10 rounded-lg bg-stone-200 dark:bg-stone-700 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-stone-400 dark:text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h4 className="font-semibold text-stone-900 dark:text-stone-100 mb-1">{t('moduleLeadership')}</h4>
-              <p className="text-sm text-stone-500 dark:text-stone-400">{t('moduleLeadershipDesc')}</p>
+              <h4 className="font-medium text-stone-700 dark:text-stone-300 text-sm mb-1">{t('moduleLeadership')}</h4>
+              <p className="text-xs text-stone-500 dark:text-stone-400">{t('moduleLeadershipDesc')}</p>
             </div>
 
             {/* Portfolio Module */}
-            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-5 relative overflow-hidden opacity-75 hover:opacity-100 transition-opacity">
+            <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-stone-200 dark:border-stone-700 p-5 relative overflow-hidden">
               <div className="absolute top-3 right-3">
-                <span className="px-2 py-0.5 text-xs font-medium bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 rounded-full">{t('moduleComingSoon')}</span>
+                <span className="px-2 py-0.5 text-xs text-stone-400 dark:text-stone-500">{t('moduleComingSoon')}</span>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              <div className="w-10 h-10 rounded-lg bg-stone-200 dark:bg-stone-700 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-stone-400 dark:text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
-              <h4 className="font-semibold text-stone-900 dark:text-stone-100 mb-1">{t('modulePortfolio')}</h4>
-              <p className="text-sm text-stone-500 dark:text-stone-400">{t('modulePortfolioDesc')}</p>
+              <h4 className="font-medium text-stone-700 dark:text-stone-300 text-sm mb-1">{t('modulePortfolio')}</h4>
+              <p className="text-xs text-stone-500 dark:text-stone-400">{t('modulePortfolioDesc')}</p>
             </div>
           </div>
 
-          {/* Contact for access */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-6 text-center">
-            <h4 className="font-semibold text-amber-900 dark:text-amber-300 mb-2">Interesse in Premium?</h4>
-            <p className="text-sm text-amber-700 dark:text-amber-400 mb-4">Neem contact op voor early access en korting.</p>
-            <a href="mailto:expert@pinkpollos.nl?subject=Pulse Premium Interest">
-              <Button variant="secondary" className="border-amber-300 text-amber-700 hover:bg-amber-100">
-                {t('contactExpertButton')}
-              </Button>
-            </a>
-          </div>
+          {/* Subtle optionality note */}
+          <p className="text-xs text-stone-400 dark:text-stone-500 text-center italic pt-4">
+            {t('modulesOptionalNote')}
+          </p>
         </div>
       )}
 

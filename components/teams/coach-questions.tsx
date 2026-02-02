@@ -123,6 +123,13 @@ export function CoachQuestions({
 
   return (
     <div className="space-y-6">
+      {/* Usage frame - when to use this tab */}
+      <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-stone-200 dark:border-stone-700 p-4">
+        <p className="text-xs text-stone-500 dark:text-stone-400 text-center italic">
+          {t('coachUsageFrame')}
+        </p>
+      </div>
+
       {/* Context cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
@@ -171,14 +178,19 @@ export function CoachQuestions({
       {questions.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium text-stone-900 dark:text-stone-100">
-              Coaching vragen voor {teamName}
-            </h4>
+            <div>
+              <h4 className="font-medium text-stone-900 dark:text-stone-100 text-sm">
+                {t('coachObservationsTitle')}
+              </h4>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                {t('coachObservationsSubtitle')}
+              </p>
+            </div>
             <button
               onClick={generateQuestions}
               className="text-xs text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 font-medium"
             >
-              Refresh
+              {t('coachRefresh')}
             </button>
           </div>
 
@@ -201,17 +213,22 @@ export function CoachQuestions({
           </div>
 
           {/* Tips */}
-          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-            <h5 className="font-medium text-amber-800 dark:text-amber-300 text-sm mb-2">
-              Tips voor gebruik
+          <div className="p-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg border border-stone-200 dark:border-stone-700">
+            <h5 className="font-medium text-stone-700 dark:text-stone-300 text-sm mb-2">
+              {t('coachTipsTitle')}
             </h5>
-            <ul className="text-xs text-amber-700 dark:text-amber-400 space-y-1">
-              <li>• Stel open vragen, geen ja/nee vragen</li>
-              <li>• Luister actief, vul niet aan</li>
-              <li>• Laat stiltes toe, geef denktijd</li>
-              <li>• Vraag door op emoties en aannames</li>
+            <ul className="text-xs text-stone-500 dark:text-stone-400 space-y-1">
+              <li>• {t('coachTip1')}</li>
+              <li>• {t('coachTip2')}</li>
+              <li>• {t('coachTip3')}</li>
+              <li>• {t('coachTip4')}</li>
             </ul>
           </div>
+
+          {/* Coaching posture hint */}
+          <p className="text-xs text-stone-400 dark:text-stone-500 text-center italic">
+            {t('coachPostureHint')}
+          </p>
         </div>
       )}
     </div>

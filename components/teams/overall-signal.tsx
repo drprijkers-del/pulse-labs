@@ -14,6 +14,7 @@ interface OverallSignalProps {
   // Optional vibe context (only shown when on Vibe tab)
   vibeMessage?: string | null
   vibeSuggestion?: string | null
+  vibeCeremoniesHint?: string | null
 }
 
 export function OverallSignal({
@@ -26,6 +27,7 @@ export function OverallSignal({
   ceremonyLevel,
   vibeMessage,
   vibeSuggestion,
+  vibeCeremoniesHint,
 }: OverallSignalProps) {
   const t = useTranslation()
 
@@ -223,6 +225,13 @@ export function OverallSignal({
           <p className={`font-medium ${colors.text}`}>{vibeMessage}</p>
           {vibeSuggestion && (
             <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">{vibeSuggestion}</p>
+          )}
+          {/* Soft guidance to Ceremonies when vibe needs attention */}
+          {vibeCeremoniesHint && (
+            <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-2 flex items-center gap-1.5">
+              <span className="font-bold">Δ</span>
+              {vibeCeremoniesHint}
+            </p>
           )}
         </div>
       )}

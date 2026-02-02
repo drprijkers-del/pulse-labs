@@ -37,7 +37,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geist.variable} font-sans antialiased bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100 transition-colors`}>
+      <body className={`${geist.variable} font-sans antialiased bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100 transition-colors`} suppressHydrationWarning>
         <ThemeProvider>
           <LanguageProvider>
             {children}
