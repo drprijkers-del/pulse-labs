@@ -103,11 +103,12 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
           <div className="flex items-center h-14 gap-1">
             {/* Brand */}
             <Link
-              href="/teams"
-              className="font-bold text-lg text-stone-900 dark:text-stone-100 shrink-0"
-              aria-label="Pulse - Home"
+              href="/"
+              className="shrink-0 flex flex-col leading-none"
+              aria-label="Pulse Labs - Home"
             >
-              Pulse
+              <span className="font-bold text-lg text-stone-900 dark:text-stone-100">Pulse</span>
+              <span className="text-[8px] font-medium text-stone-400 dark:text-stone-500 uppercase tracking-widest -mt-0.5">Labs</span>
             </Link>
 
             {/* Team Selector (when on team page) */}
@@ -182,13 +183,13 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
 
             {/* Desktop: Global Navigation (when not on team page) */}
             {!isOnTeamPage && (
-              <div className="hidden md:flex items-center gap-1 ml-4 border-l border-stone-200 dark:border-stone-700 pl-4">
+              <div className="hidden md:flex items-center gap-1.5 ml-4 border-l border-stone-200 dark:border-stone-700 pl-4">
                 <Link
                   href="/teams"
                   className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                     pathname === '/teams'
-                      ? 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-400'
-                      : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
+                      ? 'bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-400'
+                      : 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-900/40'
                   }`}
                 >
                   {t('teamsTitle')}
@@ -197,8 +198,8 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
                   href="/backlog"
                   className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                     pathname === '/backlog'
-                      ? 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-400'
-                      : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
+                      ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400'
+                      : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40'
                   }`}
                 >
                   {t('backlogTab')}
