@@ -11,6 +11,9 @@ interface OverallSignalProps {
   vibeParticipation: number // percentage 0-100
   ceremoniesSessions: number
   ceremonyLevel?: CeremonyLevel | null
+  // Optional vibe context (only shown when on Vibe tab)
+  vibeMessage?: string | null
+  vibeSuggestion?: string | null
 }
 
 export function OverallSignal({
@@ -21,6 +24,8 @@ export function OverallSignal({
   vibeParticipation,
   ceremoniesSessions,
   ceremonyLevel,
+  vibeMessage,
+  vibeSuggestion,
 }: OverallSignalProps) {
   const t = useTranslation()
 
@@ -211,6 +216,16 @@ export function OverallSignal({
           )}
         </div>
       </div>
+
+      {/* Vibe context message (only shown when on Vibe tab) */}
+      {vibeMessage && (
+        <div className="mt-4 pt-4 border-t border-stone-200/50 dark:border-stone-700/50">
+          <p className={`font-medium ${colors.text}`}>{vibeMessage}</p>
+          {vibeSuggestion && (
+            <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">{vibeSuggestion}</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

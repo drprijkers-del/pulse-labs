@@ -144,6 +144,27 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
     URL.revokeObjectURL(url)
   }
 
+  // Calculate vibe message for display in OverallSignal (only when on Vibe tab)
+  const getVibeContext = () => {
+    if (!team.vibe) return { message: null, suggestion: null }
+
+    const score = team.vibe.average_score
+    const hasEnoughData = vibeMetrics?.hasEnoughData ?? false
+
+    if (!hasEnoughData || !score) {
+      return { message: t('vibeNotEnoughData'), suggestion: t('vibeShareLinkSuggestion') }
+    } else if (score >= 4) {
+      return { message: t('vibeGreat'), suggestion: t('vibeGreatSuggestion') }
+    } else if (score >= 3.2) {
+      return { message: t('vibeGood'), suggestion: t('vibeGoodSuggestion') }
+    } else if (score >= 2.5) {
+      return { message: t('vibeAttention'), suggestion: t('vibeAttentionSuggestion') }
+    } else {
+      return { message: t('vibeConcern'), suggestion: t('vibeConcernSuggestion') }
+    }
+  }
+
+  const vibeContext = activeTab === 'vibe' ? getVibeContext() : { message: null, suggestion: null }
 
   return (
     <div className="space-y-6">
@@ -163,6 +184,8 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         })()}
         ceremoniesSessions={team.ceremonies?.total_sessions || 0}
         ceremonyLevel={team.ceremonies?.level as CeremonyLevel | undefined}
+        vibeMessage={vibeContext.message}
+        vibeSuggestion={vibeContext.suggestion}
       />
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -198,78 +221,6 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         <div className="space-y-6">
           {team.vibe ? (
             <>
-              {/* Team Vibe Signal - Simple and Actionable */}
-              {(() => {
-                const score = team.vibe?.average_score
-                const effectiveSize = team.expected_team_size || team.vibe.participant_count || 1
-                const todayCount = team.vibe.today_entries
-                const participation = effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
-                const hasEnoughData = vibeMetrics?.hasEnoughData ?? false
-
-                // Determine vibe state and message
-                let vibeState: 'great' | 'good' | 'attention' | 'concern' | 'unknown' = 'unknown'
-                let message = ''
-                let suggestion = ''
-
-                if (!hasEnoughData || !score) {
-                  vibeState = 'unknown'
-                  message = t('vibeNotEnoughData')
-                  suggestion = t('vibeShareLinkSuggestion')
-                } else if (score >= 4) {
-                  vibeState = 'great'
-                  message = t('vibeGreat')
-                  suggestion = t('vibeGreatSuggestion')
-                } else if (score >= 3.2) {
-                  vibeState = 'good'
-                  message = t('vibeGood')
-                  suggestion = t('vibeGoodSuggestion')
-                } else if (score >= 2.5) {
-                  vibeState = 'attention'
-                  message = t('vibeAttention')
-                  suggestion = t('vibeAttentionSuggestion')
-                } else {
-                  vibeState = 'concern'
-                  message = t('vibeConcern')
-                  suggestion = t('vibeConcernSuggestion')
-                }
-
-                const stateColors = {
-                  great: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', text: 'text-green-700 dark:text-green-400', score: 'bg-green-500' },
-                  good: { bg: 'bg-cyan-50 dark:bg-cyan-900/20', border: 'border-cyan-200 dark:border-cyan-800', text: 'text-cyan-700 dark:text-cyan-400', score: 'bg-cyan-500' },
-                  attention: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-700 dark:text-amber-400', score: 'bg-amber-500' },
-                  concern: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', text: 'text-red-700 dark:text-red-400', score: 'bg-red-500' },
-                  unknown: { bg: 'bg-stone-50 dark:bg-stone-800', border: 'border-stone-200 dark:border-stone-700', text: 'text-stone-600 dark:text-stone-400', score: 'bg-stone-400' },
-                }
-
-                const colors = stateColors[vibeState]
-
-                return (
-                  <div className={`rounded-xl border-2 ${colors.border} ${colors.bg} p-5`}>
-                    <div className="flex items-start gap-4">
-                      {/* Score circle */}
-                      {score && (
-                        <div className={`w-16 h-16 rounded-full ${colors.score} flex items-center justify-center shrink-0`}>
-                          <span className="text-2xl font-bold text-white">{score.toFixed(1)}</span>
-                        </div>
-                      )}
-
-                      {/* Message */}
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-lg font-semibold ${colors.text} mb-1`}>{message}</p>
-                        <p className="text-sm text-stone-600 dark:text-stone-400">{suggestion}</p>
-
-                        {/* Participation inline */}
-                        <div className="flex items-center gap-3 mt-3 text-sm text-stone-500 dark:text-stone-400">
-                          <span>{todayCount}/{effectiveSize} {t('checkedInToday')}</span>
-                          <span>·</span>
-                          <span>{team.vibe.participant_count} {t('totalParticipants')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })()}
-
               {/* Insights - only show if there are actionable ones */}
               {vibeInsights && vibeInsights.length > 0 && (
                 <div className="space-y-2">
@@ -291,21 +242,61 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                 </div>
               )}
 
-              {/* Share link */}
-              <ShareLinkSection teamId={team.id} teamSlug={team.slug} />
-
-              {/* Disable tool option */}
-              <div className="pt-4 border-t border-stone-200 dark:border-stone-700">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleDisableTool('vibe')}
-                  loading={loading === 'disable-vibe'}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  {t('teamsToolDisable')}
-                </Button>
+              {/* Simple Share Link Section */}
+              <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{t('shareReady')}</div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 truncate">/t/{team.slug}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        const baseUrl = window.location.origin
+                        navigator.clipboard.writeText(`${baseUrl}/t/${team.slug}`)
+                      }}
+                    >
+                      {t('shareCopy')}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => window.open(`/t/${team.slug}`, '_blank')}
+                    >
+                      {t('shareOpen')}
+                    </Button>
+                  </div>
+                </div>
               </div>
+
+              {/* Advanced section */}
+              <details className="group">
+                <summary className="flex items-center gap-2 text-xs text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 cursor-pointer list-none">
+                  <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  {t('shareAdvanced')}
+                </summary>
+                <div className="mt-4 space-y-4 pl-5">
+                  <ShareLinkSection teamId={team.id} teamSlug={team.slug} />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleDisableTool('vibe')}
+                    loading={loading === 'disable-vibe'}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    {t('teamsToolDisable')}
+                  </Button>
+                </div>
+              </details>
             </>
           ) : (
             <div className="text-center py-12 bg-stone-50 dark:bg-stone-800 rounded-xl">
