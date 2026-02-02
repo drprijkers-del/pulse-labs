@@ -89,7 +89,7 @@ export function CheckinSuccess({ mood, streak, teamStats, teamName }: CheckinSuc
       <header className="p-6 relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">⚗️</span>
+            <span className="text-xl font-semibold text-stone-700 dark:text-stone-300">P</span>
             <span className="text-sm text-stone-400 dark:text-stone-500">{t('vibe')}</span>
           </div>
           <LanguageToggle />
@@ -101,7 +101,7 @@ export function CheckinSuccess({ mood, streak, teamStats, teamName }: CheckinSuc
         <div className="text-center max-w-md">
           {/* Success - lab beaker with color based on mood */}
           <div className="text-6xl mb-6">
-            {mood === 5 ? '🏆' : mood >= 4 ? '✨' : '🧪'}
+            {mood === 5 ? '🏆' : mood >= 4 ? '✨' : '✓'}
           </div>
 
           {/* Message */}

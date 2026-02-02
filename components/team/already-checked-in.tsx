@@ -121,7 +121,7 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
       <header className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">⚗️</span>
+            <span className="text-xl font-semibold text-stone-700 dark:text-stone-300">P</span>
             <span className="text-sm text-stone-400 dark:text-stone-500">{t('vibe')}</span>
           </div>
           <LanguageToggle />
@@ -132,7 +132,7 @@ export function AlreadyCheckedIn({ teamName }: AlreadyCheckedInProps) {
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
         <div className="text-center max-w-md">
           {/* Already checked in */}
-          <div className="text-6xl mb-6">🧪</div>
+          <div className="text-6xl mb-6">✓</div>
           <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-2">
             {t('alreadyTitle')}
           </h1>

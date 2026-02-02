@@ -18,7 +18,7 @@ export default function GlobalError({
       <body className="bg-stone-50 dark:bg-stone-900">
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="max-w-md w-full text-center">
-            <div className="text-6xl mb-6">🧪💥</div>
+            <div className="text-6xl mb-6">⚠️</div>
             <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-2">
               Kritieke fout
             </h1>
