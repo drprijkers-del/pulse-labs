@@ -27,6 +27,8 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [showExpertModal, setShowExpertModal] = useState(false)
+  const [showCoachDropdown, setShowCoachDropdown] = useState(false)
+  const [emailCopied, setEmailCopied] = useState(false)
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const [showTeamSelector, setShowTeamSelector] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -58,12 +60,13 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
     const handleClickOutside = () => {
       setShowSettingsMenu(false)
       setShowTeamSelector(false)
+      setShowCoachDropdown(false)
     }
-    if (showSettingsMenu || showTeamSelector) {
+    if (showSettingsMenu || showTeamSelector || showCoachDropdown) {
       document.addEventListener('click', handleClickOutside)
       return () => document.removeEventListener('click', handleClickOutside)
     }
-  }, [showSettingsMenu, showTeamSelector])
+  }, [showSettingsMenu, showTeamSelector, showCoachDropdown])
 
   async function handleLogout() {
     try {
@@ -223,17 +226,63 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
             {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Need a coach? link - always visible */}
-            <button
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText('info@pinkpollos.com')
-                alert('Email gekopieerd: info@pinkpollos.com\n\nStuur een mail met onderwerp: Pulse - Coaching Request')
-              }}
-              className="px-3 py-1.5 text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors border border-cyan-200 dark:border-cyan-800 cursor-pointer"
-            >
-              {t('needCoach')}
-            </button>
+            {/* Need a coach? dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowCoachDropdown(!showCoachDropdown)
+                  setEmailCopied(false)
+                }}
+                className="px-3 py-1.5 text-xs font-medium text-stone-500 dark:text-stone-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
+              >
+                {t('needCoach')}
+              </button>
+
+              {showCoachDropdown && (
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-stone-800 rounded-xl shadow-lg border border-stone-200 dark:border-stone-700 p-4 z-50">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="font-medium text-stone-900 dark:text-stone-100 text-sm">{t('contactExpertTitle')}</div>
+                      <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">{t('contactExpertMessage')}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-stone-50 dark:bg-stone-900 rounded-lg p-3 mb-3">
+                    <div className="text-xs text-stone-400 dark:text-stone-500 mb-1">Email</div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-stone-900 dark:text-stone-100">info@pinkpollos.com</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigator.clipboard.writeText('info@pinkpollos.com')
+                          setEmailCopied(true)
+                          setTimeout(() => setEmailCopied(false), 2000)
+                        }}
+                        className="text-xs px-2 py-1 rounded bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors"
+                      >
+                        {emailCopied ? '✓ Gekopieerd' : 'Kopieer'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <a
+                    href="mailto:info@pinkpollos.com?subject=Pulse%20-%20Coaching%20Request"
+                    className="block w-full text-center py-2 px-4 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium rounded-lg transition-colors"
+                    onClick={() => setShowCoachDropdown(false)}
+                  >
+                    {t('contactExpertButton')}
+                  </a>
+                </div>
+              )}
+            </div>
 
             {/* Desktop: Right Side Actions */}
             <div className="hidden md:flex items-center gap-2">
