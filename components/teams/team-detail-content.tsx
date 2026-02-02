@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { UnifiedTeam, enableTool, disableTool, deleteTeam, exportPulseData } from '@/domain/teams/actions'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/lib/i18n/context'
-import { VibeMetrics } from '@/components/admin/vibe-metrics'
 import { ShareLinkSection } from '@/components/admin/share-link-section'
 import { GettingStartedChecklist } from '@/components/teams/getting-started-checklist'
 import { OverallSignal } from '@/components/teams/overall-signal'
@@ -198,82 +197,116 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
       {activeTab === 'vibe' && (
         <div className="space-y-6">
           {team.vibe ? (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Left column: Metrics */}
-              <div className="space-y-6">
-                {vibeMetrics && (
-                  <VibeMetrics metrics={vibeMetrics} insights={vibeInsights} />
-                )}
-              </div>
+            <>
+              {/* Team Vibe Signal - Simple and Actionable */}
+              {(() => {
+                const score = team.vibe?.average_score
+                const effectiveSize = team.expected_team_size || team.vibe.participant_count || 1
+                const todayCount = team.vibe.today_entries
+                const participation = effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
+                const hasEnoughData = vibeMetrics?.hasEnoughData ?? false
 
-              {/* Right column: Share link & actions */}
-              <div className="space-y-6">
-                {/* Share link */}
-                <ShareLinkSection teamId={team.id} teamSlug={team.slug} />
+                // Determine vibe state and message
+                let vibeState: 'great' | 'good' | 'attention' | 'concern' | 'unknown' = 'unknown'
+                let message = ''
+                let suggestion = ''
 
-                {/* Quick stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Today's participation */}
-                  <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4">
-                    {(() => {
-                      const effectiveSize = team.expected_team_size || team.vibe.participant_count || 1
-                      const todayCount = team.vibe.today_entries
-                      const percentage = effectiveSize > 0 ? Math.round((todayCount / effectiveSize) * 100) : 0
-                      const isComplete = percentage >= 80
-                      const isLow = percentage < 50 && effectiveSize > 0
+                if (!hasEnoughData || !score) {
+                  vibeState = 'unknown'
+                  message = t('vibeNotEnoughData')
+                  suggestion = t('vibeShareLinkSuggestion')
+                } else if (score >= 4) {
+                  vibeState = 'great'
+                  message = t('vibeGreat')
+                  suggestion = t('vibeGreatSuggestion')
+                } else if (score >= 3.2) {
+                  vibeState = 'good'
+                  message = t('vibeGood')
+                  suggestion = t('vibeGoodSuggestion')
+                } else if (score >= 2.5) {
+                  vibeState = 'attention'
+                  message = t('vibeAttention')
+                  suggestion = t('vibeAttentionSuggestion')
+                } else {
+                  vibeState = 'concern'
+                  message = t('vibeConcern')
+                  suggestion = t('vibeConcernSuggestion')
+                }
 
-                      return (
-                        <>
-                          <div className="flex items-baseline gap-1">
-                            <span className={`text-2xl font-bold ${
-                              isComplete ? 'text-green-600 dark:text-green-400' :
-                              isLow ? 'text-amber-600 dark:text-amber-400' :
-                              'text-stone-900 dark:text-stone-100'
-                            }`}>
-                              {todayCount}/{effectiveSize}
-                            </span>
-                            <span className={`text-sm font-medium ${
-                              isComplete ? 'text-green-600 dark:text-green-400' :
-                              isLow ? 'text-amber-600 dark:text-amber-400' :
-                              'text-stone-500 dark:text-stone-400'
-                            }`}>
-                              ({percentage}%)
-                            </span>
-                          </div>
-                          <div className="text-sm text-stone-500 dark:text-stone-400">{t('statsTodayParticipation')}</div>
-                          {/* Progress bar */}
-                          <div className="mt-2 h-1.5 bg-stone-100 dark:bg-stone-700 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all ${
-                                isComplete ? 'bg-green-500' :
-                                isLow ? 'bg-amber-500' :
-                                'bg-cyan-500'
-                              }`}
-                              style={{ width: `${Math.min(100, percentage)}%` }}
-                            />
-                          </div>
-                        </>
-                      )
-                    })()}
+                const stateColors = {
+                  great: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', text: 'text-green-700 dark:text-green-400', score: 'bg-green-500' },
+                  good: { bg: 'bg-cyan-50 dark:bg-cyan-900/20', border: 'border-cyan-200 dark:border-cyan-800', text: 'text-cyan-700 dark:text-cyan-400', score: 'bg-cyan-500' },
+                  attention: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-700 dark:text-amber-400', score: 'bg-amber-500' },
+                  concern: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', text: 'text-red-700 dark:text-red-400', score: 'bg-red-500' },
+                  unknown: { bg: 'bg-stone-50 dark:bg-stone-800', border: 'border-stone-200 dark:border-stone-700', text: 'text-stone-600 dark:text-stone-400', score: 'bg-stone-400' },
+                }
+
+                const colors = stateColors[vibeState]
+
+                return (
+                  <div className={`rounded-xl border-2 ${colors.border} ${colors.bg} p-5`}>
+                    <div className="flex items-start gap-4">
+                      {/* Score circle */}
+                      {score && (
+                        <div className={`w-16 h-16 rounded-full ${colors.score} flex items-center justify-center shrink-0`}>
+                          <span className="text-2xl font-bold text-white">{score.toFixed(1)}</span>
+                        </div>
+                      )}
+
+                      {/* Message */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-lg font-semibold ${colors.text} mb-1`}>{message}</p>
+                        <p className="text-sm text-stone-600 dark:text-stone-400">{suggestion}</p>
+
+                        {/* Participation inline */}
+                        <div className="flex items-center gap-3 mt-3 text-sm text-stone-500 dark:text-stone-400">
+                          <span>{todayCount}/{effectiveSize} {t('checkedInToday')}</span>
+                          <span>·</span>
+                          <span>{team.vibe.participant_count} {t('totalParticipants')}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {/* Total participants vs expected */}
-                  <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                        {team.vibe.participant_count}
-                      </span>
-                      {team.expected_team_size && (
-                        <span className="text-sm text-stone-500 dark:text-stone-400">
-                          / {team.expected_team_size}
-                        </span>
+                )
+              })()}
+
+              {/* Insights - only show if there are actionable ones */}
+              {vibeInsights && vibeInsights.length > 0 && (
+                <div className="space-y-2">
+                  {vibeInsights.slice(0, 2).map((insight) => (
+                    <div
+                      key={insight.id}
+                      className={`rounded-lg p-3 border ${
+                        insight.severity === 'warning' ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20' :
+                        insight.severity === 'attention' ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20' :
+                        'border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800'
+                      }`}
+                    >
+                      <p className="text-sm font-medium text-stone-800 dark:text-stone-200">{insight.message}</p>
+                      {insight.detail && (
+                        <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">{insight.detail}</p>
                       )}
                     </div>
-                    <div className="text-sm text-stone-500 dark:text-stone-400">{t('adminParticipants')}</div>
-                  </div>
+                  ))}
                 </div>
+              )}
 
+              {/* Share link */}
+              <ShareLinkSection teamId={team.id} teamSlug={team.slug} />
+
+              {/* Disable tool option */}
+              <div className="pt-4 border-t border-stone-200 dark:border-stone-700">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleDisableTool('vibe')}
+                  loading={loading === 'disable-vibe'}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  {t('teamsToolDisable')}
+                </Button>
               </div>
-            </div>
+            </>
           ) : (
             <div className="text-center py-12 bg-stone-50 dark:bg-stone-800 rounded-xl">
               <div className="text-stone-400 dark:text-stone-500 mb-4">
