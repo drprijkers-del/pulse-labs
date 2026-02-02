@@ -11,6 +11,7 @@ import { OverallSignal } from '@/components/teams/overall-signal'
 import { SessionCompare } from '@/components/ceremonies/session-compare'
 import { CoachQuestions } from '@/components/teams/coach-questions'
 import { FeedbackTool } from '@/components/teams/feedback-tool'
+import { VibeMetrics } from '@/components/admin/vibe-metrics'
 import type { TeamMetrics, VibeInsight } from '@/domain/metrics/types'
 import type { CeremonySessionWithStats, CeremonyLevel } from '@/domain/ceremonies/types'
 import { CEREMONY_LEVELS, getAnglesGroupedByLevel } from '@/domain/ceremonies/types'
@@ -421,25 +422,9 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                 )}
               </div>
 
-              {/* Insights - only show if there are actionable ones */}
-              {vibeInsights && vibeInsights.length > 0 && (
-                <div className="space-y-2">
-                  {vibeInsights.slice(0, 2).map((insight) => (
-                    <div
-                      key={insight.id}
-                      className={`rounded-lg p-3 border ${
-                        insight.severity === 'warning' ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20' :
-                        insight.severity === 'attention' ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20' :
-                        'border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800'
-                      }`}
-                    >
-                      <p className="text-sm font-medium text-stone-800 dark:text-stone-200">{insight.message}</p>
-                      {insight.detail && (
-                        <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">{insight.detail}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              {/* Vibe Metrics - mood data dashboard */}
+              {vibeMetrics && (
+                <VibeMetrics metrics={vibeMetrics} insights={vibeInsights || []} />
               )}
             </>
           ) : (
