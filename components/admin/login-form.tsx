@@ -72,10 +72,13 @@ export function LoginForm() {
         return
       }
 
+      // Small delay to ensure cookie is set before navigation
+      await new Promise(resolve => setTimeout(resolve, 100))
       router.push(data.redirect || '/teams')
       router.refresh()
     } catch {
       setError('An error occurred')
+    } finally {
       setLoading(false)
     }
   }
