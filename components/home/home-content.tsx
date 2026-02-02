@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useTranslation } from '@/lib/i18n/context'
 import { LanguageToggle } from '@/components/ui/language-toggle'
-import { Button } from '@/components/ui/button'
 
 export function HomeContent() {
   const t = useTranslation()
@@ -17,25 +16,20 @@ export function HomeContent() {
           backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
           backgroundSize: '50px 50px'
         }} />
-        {/* Green glow - top left */}
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-green-500/20 rounded-full blur-[100px]" />
+        {/* Pink glow - top left */}
+        <div className="absolute -top-40 -left-40 w-80 h-80 bg-pink-500/20 rounded-full blur-[100px]" />
         {/* Cyan glow - bottom right */}
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px]" />
-        {/* Yellow accent */}
-        <div className="absolute top-1/3 right-1/4 w-32 h-32 bg-yellow-400/5 rounded-full blur-[80px]" />
-      </div>
-
-      {/* Easter eggs */}
-      <div className="absolute top-20 right-10 text-xs opacity-10 animate-pulse" style={{ animationDuration: '4s' }}>
-        🪰
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-500/15 rounded-full blur-[120px]" />
+        {/* Purple accent - center */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/5 rounded-full blur-[100px]" />
       </div>
 
       {/* Header */}
       <header className="p-6 flex justify-between items-center relative z-10">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]">🧪</span>
-          <span className="text-lg font-bold text-stone-100">Pulse</span>
-        </div>
+        <Link href="/" className="flex flex-col">
+          <span className="text-2xl font-bold text-stone-100 tracking-tight">Pulse</span>
+          <span className="text-[10px] font-medium text-stone-500 uppercase tracking-widest -mt-1">Labs</span>
+        </Link>
         <div className="flex items-center gap-4">
           <LanguageToggle />
         </div>
@@ -43,30 +37,28 @@ export function HomeContent() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
-        <div className="text-center max-w-lg">
-          {/* Lab flask with glow - links to super admin */}
-          <Link
-            href="/super-admin/login"
-            className="inline-block text-7xl mb-8 hover:scale-110 transition-all duration-300 drop-shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:drop-shadow-[0_0_30px_rgba(34,197,94,0.6)]"
-            title="Lab access"
-          >
-            🧪
-          </Link>
+        <div className="text-center max-w-2xl">
+          {/* Heart pulse icon */}
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/20 mb-8">
+            <span className="text-4xl text-pink-400">♥</span>
+          </div>
 
-          {/* Title with subtle glow */}
-          <h1 className="text-5xl sm:text-6xl font-bold mb-4 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100">
-            {t('labTitle')}
+          {/* Main headline */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-stone-100 via-pink-100 to-stone-100">
+            Check Your Team&apos;s Pulse
           </h1>
 
-          <p className="text-xl text-stone-400 mb-12 font-light">
-            {t('labSubtitle')}
+          <p className="text-xl text-stone-400 mb-8 font-light leading-relaxed">
+            Simple daily check-ins. Real-time team insights.
+            <br className="hidden sm:block" />
+            Know how your team is really doing.
           </p>
 
-          {/* CTA with lab-style button */}
+          {/* CTA */}
           <Link href="/teams">
-            <button className="group relative px-8 py-4 bg-gradient-to-r from-green-600 to-cyan-600 rounded-xl font-semibold text-white shadow-lg shadow-green-900/30 hover:shadow-green-500/30 hover:from-green-500 hover:to-cyan-500 transition-all duration-300">
+            <button className="group relative px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-semibold text-white shadow-lg shadow-pink-900/30 hover:shadow-pink-500/30 hover:from-pink-500 hover:to-purple-500 transition-all duration-300 mb-12">
               <span className="relative z-10 flex items-center gap-2">
-                Teams beheren
+                {t('homeGetStarted')}
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -74,24 +66,35 @@ export function HomeContent() {
             </button>
           </Link>
 
-          {/* Features with neon-style dots */}
-          <div className="flex flex-wrap justify-center gap-8 mt-14 mb-12">
-            <div className="flex items-center gap-2 text-stone-400">
-              <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]"></span>
-              <span className="text-sm">{t('labFeature1')}</span>
+          {/* Feature cards */}
+          <div className="grid sm:grid-cols-3 gap-4 mt-8 text-left">
+            <div className="bg-stone-800/50 rounded-xl p-5 border border-stone-700/50">
+              <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center mb-3">
+                <span className="text-pink-400 text-lg">♥</span>
+              </div>
+              <h3 className="font-semibold text-stone-200 mb-1">Vibe Check</h3>
+              <p className="text-sm text-stone-400">Daily mood tracking with anonymous check-ins. See trends over time.</p>
             </div>
-            <div className="flex items-center gap-2 text-stone-400">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]"></span>
-              <span className="text-sm">{t('labFeature2')}</span>
+            <div className="bg-stone-800/50 rounded-xl p-5 border border-stone-700/50">
+              <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center mb-3">
+                <span className="text-cyan-400 font-bold">Δ</span>
+              </div>
+              <h3 className="font-semibold text-stone-200 mb-1">Ceremonies</h3>
+              <p className="text-sm text-stone-400">Deep-dive team health assessments. Shu-Ha-Ri progression system.</p>
             </div>
-            <div className="flex items-center gap-2 text-stone-400">
-              <span className="w-2 h-2 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]"></span>
-              <span className="text-sm">{t('labFeature3')}</span>
+            <div className="bg-stone-800/50 rounded-xl p-5 border border-stone-700/50">
+              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="font-semibold text-stone-200 mb-1">Insights</h3>
+              <p className="text-sm text-stone-400">Actionable signals and coach-ready questions for team leads.</p>
             </div>
           </div>
 
           {/* Login hint */}
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-stone-500 mt-12">
             {t('labLoginHint')}
           </p>
         </div>
@@ -109,7 +112,6 @@ export function HomeContent() {
             {t('pinkPollos')}
           </a>
           {' · '}{t('labFooter')}
-          <span className="ml-2 opacity-50 drop-shadow-[0_0_4px_rgba(34,197,94,0.5)]" title="99.1% pure">⚗️</span>
         </p>
       </footer>
     </div>
