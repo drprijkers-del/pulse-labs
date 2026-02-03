@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { UnifiedTeam, enableTool, disableTool, deleteTeam, exportPulseData, getShareLink, deactivateShareLink, updateTeam } from '@/domain/teams/actions'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/lib/i18n/context'
-import { GettingStartedChecklist } from '@/components/teams/getting-started-checklist'
 import { OverallSignal } from '@/components/teams/overall-signal'
 import { CoachQuestions } from '@/components/teams/coach-questions'
 import { FeedbackTool } from '@/components/teams/feedback-tool'
@@ -304,24 +303,50 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
               {activeTab === 'modules' && t('modulesExplanation')}
               {!activeTab && t('teamDetailContext')}
             </p>
-            {/* Vibe framing - clarify what this signal means */}
+            {/* Vibe steps - clarify what this signal means */}
             {activeTab === 'vibe' && (
-              <div className="mt-2 space-y-1">
-                <p className="text-xs text-stone-400 dark:text-stone-500 italic">
-                  {t('vibeFraming')}
-                </p>
-                <p className="text-xs text-stone-400 dark:text-stone-500">
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t('vibeStep1')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t('vibeStep2')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t('vibeStep3')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t('vibeStep4')}</span>
+                </div>
+                <p className="text-xs text-stone-400 dark:text-stone-500 italic pt-1">
                   {t('vibeTrustNote')}
                 </p>
               </div>
             )}
-            {/* Ceremonies framing - exploration focus */}
+            {/* Ceremonies steps - exploration focus */}
             {activeTab === 'ceremonies' && (
-              <div className="mt-2 space-y-1">
-                <p className="text-xs text-stone-400 dark:text-stone-500 italic">
-                  {t('ceremoniesFraming')}
-                </p>
-                <p className="text-xs text-stone-400 dark:text-stone-500">
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t('ceremoniesStep1')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t('ceremoniesStep2')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t('ceremoniesStep3')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t('ceremoniesStep4')}</span>
+                </div>
+                <p className="text-xs text-stone-400 dark:text-stone-500 italic pt-1">
                   {t('ceremoniesGuidance')}
                 </p>
               </div>
@@ -341,7 +366,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         </div>
 
         {/* Shu-Ha-Ri explanation - only on ceremonies tab */}
-        {activeTab === 'ceremonies' && team.tools_enabled?.includes('ceremonies') && (
+        {activeTab === 'ceremonies' && (
           <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-700">
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">{t('shuHaRiTitle')}</h4>
@@ -377,19 +402,6 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         )}
       </div>
       )}
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          ZONE 3: SIGNAL CONFIDENCE & ONBOARDING
-          Data maturity, baseline status, getting started guidance
-          ═══════════════════════════════════════════════════════════════════ */}
-      <GettingStartedChecklist
-        teamId={team.id}
-        teamSlug={team.slug}
-        activeTab={activeTab}
-        hasPulseEntries={(team.vibe?.participant_count || 0) > 0}
-        hasCeremonySessions={(team.ceremonies?.total_sessions || 0) > 0}
-        hasClosedSessions={(team.ceremonies?.closed_sessions || 0) > 0}
-      />
 
       {/* HOME DASHBOARD - Overview with tool cards */}
       {activeTab === 'home' && (
@@ -517,7 +529,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
           </div>
 
           {/* Share Results Section */}
-          {shareUrl && (
+          {shareUrl ? (
             <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
@@ -555,6 +567,20 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
                 >
                   {t('shareOpen')}
                 </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-dashed border-stone-300 dark:border-stone-600 p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-stone-200 dark:bg-stone-700 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-stone-400 dark:text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-stone-500 dark:text-stone-400">{t('shareResultsTitle')}</div>
+                  <div className="text-xs text-stone-400 dark:text-stone-500">{t('shareResultsPlaceholder')}</div>
+                </div>
               </div>
             </div>
           )}
