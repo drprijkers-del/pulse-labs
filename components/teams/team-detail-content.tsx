@@ -341,7 +341,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         </div>
 
         {/* Shu-Ha-Ri explanation - only on ceremonies tab */}
-        {activeTab === 'ceremonies' && team.ceremonies && (
+        {activeTab === 'ceremonies' && team.tools_enabled?.includes('ceremonies') && (
           <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-700">
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">{t('shuHaRiTitle')}</h4>
