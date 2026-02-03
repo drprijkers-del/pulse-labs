@@ -158,7 +158,16 @@ export function OverallSignal({
           <div className="flex flex-wrap items-center gap-3 text-sm">
             {vibeScore !== null && (
               <div className="flex items-center gap-1.5">
-                <span className="text-pink-500">♥</span>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M2 12h3l2-6 3 12 3-8 2 4h7"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-cyan-500"
+                  />
+                </svg>
                 <span className="text-stone-600 dark:text-stone-400">
                   Vibe: {vibeScore.toFixed(1)}
                 </span>

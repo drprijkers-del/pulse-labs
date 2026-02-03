@@ -85,9 +85,11 @@ export function HomeContent() {
           <div className="mb-12">
             <h2 className="text-sm font-medium text-stone-500 uppercase tracking-widest mb-6">{t('homeCoreTools')}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-              <div className="bg-stone-800/50 rounded-xl p-5 border border-stone-700/50 hover:border-pink-500/30 transition-colors">
-                <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center mb-3">
-                  <span className="text-pink-400 text-lg">♥</span>
+              <div className="bg-stone-800/50 rounded-xl p-5 border border-stone-700/50 hover:border-cyan-500/30 transition-colors">
+                <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center mb-3">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                    <path d="M2 12h3l2-6 3 12 3-8 2 4h7" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400" />
+                  </svg>
                 </div>
                 <h3 className="font-semibold text-stone-200 mb-1">{t('homeVibeCheck')}</h3>
                 <p className="text-sm text-stone-400">{t('homeVibeCheckDesc')}</p>

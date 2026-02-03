@@ -92,9 +92,16 @@ export function TeamsListContent({ teams }: TeamsListContentProps) {
             {/* Feature highlights - professional icons */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-left">
               <div className="bg-white dark:bg-stone-800 rounded-xl p-4 border border-stone-200 dark:border-stone-700">
-                <div className="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mb-2">
-                  <svg className="w-4 h-4 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <div className="w-8 h-8 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center mb-2">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M2 12h3l2-6 3 12 3-8 2 4h7"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-cyan-600 dark:text-cyan-400"
+                    />
                   </svg>
                 </div>
                 <div className="text-sm font-medium text-stone-900 dark:text-stone-100">Vibe</div>

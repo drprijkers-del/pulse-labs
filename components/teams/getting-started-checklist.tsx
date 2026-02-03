@@ -46,11 +46,20 @@ export function GettingStartedChecklist({
     if (dismissed || hasPulseEntries) return null
 
     return (
-      <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-xl border border-pink-200 dark:border-pink-800 p-4 sm:p-5">
+      <div className="bg-gradient-to-r from-cyan-50 to-teal-50 dark:from-cyan-900/20 dark:to-teal-900/20 rounded-xl border border-cyan-200 dark:border-cyan-800 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center text-xl">
-              ♥
+            <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M2 12h3l2-6 3 12 3-8 2 4h7"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-cyan-600 dark:text-cyan-400"
+                />
+              </svg>
             </div>
             <div>
               <h3 className="font-semibold text-stone-900 dark:text-stone-100">
@@ -63,7 +72,7 @@ export function GettingStartedChecklist({
           </div>
           <button
             onClick={handleDismiss}
-            className="p-2.5 -m-1 hover:bg-pink-100 dark:hover:bg-pink-800/50 rounded-lg transition-colors text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 min-w-11 min-h-11 flex items-center justify-center"
+            className="p-2.5 -m-1 hover:bg-cyan-100 dark:hover:bg-cyan-800/50 rounded-lg transition-colors text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 min-w-11 min-h-11 flex items-center justify-center"
             aria-label="Dismiss"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +94,7 @@ export function GettingStartedChecklist({
                 {t('onboardingStep1Hint')}
               </p>
             </div>
-            <span className="px-4 py-2.5 text-xs font-medium bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 rounded-lg shrink-0 min-h-11 flex items-center">
+            <span className="px-4 py-2.5 text-xs font-medium bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-lg shrink-0 min-h-11 flex items-center">
               {t('onboardingUseShareLink')}
             </span>
           </div>
