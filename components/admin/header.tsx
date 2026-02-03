@@ -28,7 +28,6 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
   const searchParams = useSearchParams()
   const [showExpertModal, setShowExpertModal] = useState(false)
   const [showCoachDropdown, setShowCoachDropdown] = useState(false)
-  const [emailCopied, setEmailCopied] = useState(false)
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const [showTeamSelector, setShowTeamSelector] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -110,7 +109,6 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
   // Items for the "More" dropdown that are not team modes
   const moreMenuExtras = [
     { href: '/backlog', label: t('backlogTab') },
-    { href: '/contact', label: t('needCoach') },
   ]
 
   // All modes for mobile menu
@@ -187,8 +185,8 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
             {/* Desktop: Mode Navigation (only on team pages) */}
             {isOnTeamPage && currentTeam && (
               <div className="hidden md:flex items-center gap-1 ml-4 border-l border-stone-200 dark:border-stone-700 pl-4">
-                {/* Primary tabs - hidden on Overview */}
-                {activeMode !== 'home' && primaryModes.map(({ key, label }) => (
+                {/* Primary tabs - always visible */}
+                {primaryModes.map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => navigateToMode(key)}
@@ -409,28 +407,6 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
                       </div>
                     </div>
 
-                    {/* Coach contact */}
-                    <div className="px-3 py-2 border-t border-stone-100 dark:border-stone-700">
-                      <div className="text-xs font-medium text-stone-400 dark:text-stone-500 mb-2">{t('needCoach')}</div>
-                      <div className="flex items-center gap-1">
-                        <div className="flex-1 bg-stone-50 dark:bg-stone-900 rounded-md px-2 py-1.5">
-                          <span className="text-xs text-stone-600 dark:text-stone-300 truncate block">pulse-labs.io/contact</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigator.clipboard.writeText('https://pulse-labs.io/contact')
-                            setEmailCopied(true)
-                            setTimeout(() => setEmailCopied(false), 2000)
-                          }}
-                          className="text-xs px-2 py-1.5 rounded-md bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors whitespace-nowrap"
-                        >
-                          {emailCopied ? t('shareCopied') : t('copyLink')}
-                        </button>
-                      </div>
-                    </div>
-
                     <div className="border-t border-stone-100 dark:border-stone-700 mt-1 pt-1">
                       <button
                         onClick={handleLogout}
@@ -633,13 +609,6 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
 
             {/* Contact & Logout */}
             <div className="p-2 border-t border-stone-200 dark:border-stone-700">
-              <Link
-                href="/contact"
-                className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 active:bg-cyan-100 dark:active:bg-cyan-900/40 transition-colors touch-manipulation"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {t('needCoach')}
-              </Link>
               <button
                 type="button"
                 onClick={(e) => {

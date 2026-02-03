@@ -311,8 +311,8 @@ export function BacklogManagementContent({ backlogItems, releaseNotes }: Backlog
                           defaultValue={editingBacklog?.product || 'vibe'}
                           className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
                         >
-                          <option value="pulse">Pulse</option>
-                          <option value="delta">Delta</option>
+                          <option value="vibe">Vibe</option>
+                          <option value="ceremonies">Ceremonies</option>
                           <option value="shared">Shared</option>
                         </select>
                       </div>
@@ -688,8 +688,8 @@ function ReleaseNoteForm({ editingRelease, loading, onSubmit, onCancel }: Releas
             defaultValue={editingRelease?.product || 'vibe'}
             className="w-full px-3 py-2 rounded-lg border border-stone-600 bg-stone-700 text-white"
           >
-            <option value="pulse">Pulse</option>
-            <option value="delta">Delta</option>
+            <option value="vibe">Vibe</option>
+            <option value="ceremonies">Ceremonies</option>
             <option value="shared">Shared</option>
           </select>
         </div>
