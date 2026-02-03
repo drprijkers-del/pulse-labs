@@ -17,16 +17,18 @@ interface AdminHeaderProps {
   currentTeam?: Team | null
   allTeams?: Team[]
   userEmail?: string
+  userRole?: 'super_admin' | 'scrum_master'
 }
 
 type NavMode = 'home' | 'vibe' | 'ceremonies' | 'feedback' | 'coach' | 'modules' | 'settings'
 
 // Inner component that uses useSearchParams
-function AdminHeaderInner({ currentTeam, allTeams = [], userEmail }: AdminHeaderProps) {
+function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userRole }: AdminHeaderProps) {
   const t = useTranslation()
 
   // Extract username from email (part before @)
   const username = userEmail ? userEmail.split('@')[0] : null
+  const isSuperAdmin = userRole === 'super_admin'
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -343,6 +345,17 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail }: AdminHeader
                 <span className="text-sm text-stone-500 dark:text-stone-400">
                   {username}
                 </span>
+              )}
+
+              {/* Super Admin Button - only for super admins */}
+              {isSuperAdmin && (
+                <Link
+                  href="/super-admin/dashboard"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg transition-colors"
+                >
+                  <span>🔐</span>
+                  <span>Super Admin</span>
+                </Link>
               )}
 
               {/* Settings Dropdown */}

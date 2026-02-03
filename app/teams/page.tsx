@@ -10,7 +10,7 @@ export default async function TeamsPage() {
 
   return (
     <>
-      <AdminHeader userEmail={admin.email} />
+      <AdminHeader userEmail={admin.email} userRole={admin.role} />
       <main className="max-w-6xl mx-auto px-4 pt-8 pb-24">
         <TeamsPageContent teams={teams} />
       </main>

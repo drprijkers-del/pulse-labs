@@ -36,6 +36,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
         currentTeam={{ id: team.id, name: team.name, slug: team.slug }}
         allTeams={teamList}
         userEmail={admin.email}
+        userRole={admin.role}
       />
       <main className="max-w-6xl mx-auto px-4 pt-6 pb-24">
         <TeamDetailContent team={team} vibeMetrics={vibeMetrics} vibeInsights={vibeInsights} ceremoniesSessions={ceremoniesSessions} />

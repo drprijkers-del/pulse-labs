@@ -68,23 +68,51 @@ export function SuperAdminDashboard({ users: initialUsers }: Props) {
               <span className="text-stone-500 text-sm ml-2">Heisenberg Labs</span>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-3 min-h-11 text-sm text-stone-400 hover:text-white hover:bg-stone-800 rounded-lg transition-colors"
-            aria-label="Log out of super admin"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="/teams"
+              className="px-3 py-2 text-sm bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors flex items-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Teams
+            </a>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm text-stone-400 hover:text-white hover:bg-stone-800 rounded-lg transition-colors"
+              aria-label="Log out of super admin"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Main content */}
       <main className="max-w-4xl mx-auto p-6">
         {/* Quick Actions */}
-        <div className="mb-8">
+        <div className="mb-8 space-y-3">
+          <a
+            href="/super-admin/teams"
+            className="flex items-center gap-3 bg-stone-800 border border-stone-700 rounded-xl p-4 hover:bg-stone-750 hover:border-green-700 transition-colors group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-green-900/50 flex items-center justify-center text-green-400 group-hover:bg-green-900">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <div className="font-medium text-white">Teams by Account</div>
+              <div className="text-sm text-stone-400">View all teams grouped by their owner account</div>
+            </div>
+            <svg className="w-5 h-5 text-stone-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
           <a
             href="/super-admin/backlog"
-            className="inline-flex items-center gap-3 bg-stone-800 border border-stone-700 rounded-xl p-4 hover:bg-stone-750 hover:border-cyan-700 transition-colors group"
+            className="flex items-center gap-3 bg-stone-800 border border-stone-700 rounded-xl p-4 hover:bg-stone-750 hover:border-cyan-700 transition-colors group"
           >
             <div className="w-10 h-10 rounded-lg bg-cyan-900/50 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-900">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
