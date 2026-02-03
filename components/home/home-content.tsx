@@ -38,9 +38,24 @@ export function HomeContent() {
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center p-6 relative z-10">
         <div className="text-center max-w-4xl w-full">
-          {/* Heart pulse icon */}
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/20 mb-8 mt-8">
-            <span className="text-4xl text-pink-400">♥</span>
+          {/* Pulse icon */}
+          <div className="inline-flex items-center justify-center mb-8 mt-8">
+            <svg className="w-20 h-20" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="24" stroke="url(#ripple1)" strokeWidth="2" fill="none" opacity="0.4" />
+              <circle cx="32" cy="32" r="16" stroke="url(#ripple1)" strokeWidth="2.5" fill="none" opacity="0.6" />
+              <circle cx="32" cy="32" r="8" stroke="url(#ripple1)" strokeWidth="3" fill="none" opacity="0.8" />
+              <circle cx="32" cy="32" r="3" fill="url(#center1)" />
+              <defs>
+                <linearGradient id="center1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#f472b6" />
+                  <stop offset="100%" stopColor="#c084fc" />
+                </linearGradient>
+                <linearGradient id="ripple1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#f472b6" />
+                  <stop offset="100%" stopColor="#c084fc" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
 
           {/* Main headline */}
