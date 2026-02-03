@@ -16,13 +16,17 @@ interface Team {
 interface AdminHeaderProps {
   currentTeam?: Team | null
   allTeams?: Team[]
+  userEmail?: string
 }
 
 type NavMode = 'home' | 'vibe' | 'ceremonies' | 'feedback' | 'coach' | 'modules' | 'settings'
 
 // Inner component that uses useSearchParams
-function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
+function AdminHeaderInner({ currentTeam, allTeams = [], userEmail }: AdminHeaderProps) {
   const t = useTranslation()
+
+  // Extract username from email (part before @)
+  const username = userEmail ? userEmail.split('@')[0] : null
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -333,7 +337,14 @@ function AdminHeaderInner({ currentTeam, allTeams = [] }: AdminHeaderProps) {
             <div className="flex-1" />
 
             {/* Desktop: Right Side Actions */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-2">
+              {/* Username display */}
+              {username && (
+                <span className="text-sm text-stone-500 dark:text-stone-400">
+                  {username}
+                </span>
+              )}
+
               {/* Settings Dropdown */}
               <div className="relative">
                 <button

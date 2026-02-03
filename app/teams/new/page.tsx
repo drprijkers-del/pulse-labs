@@ -5,12 +5,12 @@ import { NewTeamForm } from '@/components/teams/new-team-form'
 import { getTranslations } from '@/lib/i18n/server'
 
 export default async function NewTeamPage() {
-  await requireAdmin()
+  const admin = await requireAdmin()
   const t = await getTranslations()
 
   return (
     <>
-      <AdminHeader />
+      <AdminHeader userEmail={admin.email} />
       <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
         {/* Back link */}
         <Link

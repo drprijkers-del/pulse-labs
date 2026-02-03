@@ -12,7 +12,7 @@ interface TeamPageProps {
 }
 
 export default async function TeamPage({ params }: TeamPageProps) {
-  await requireAdmin()
+  const admin = await requireAdmin()
   const { id } = await params
   const language = await getLanguage()
   const [team, vibeMetrics, vibeInsights, ceremoniesSessions, allTeams] = await Promise.all([
@@ -35,6 +35,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
       <AdminHeader
         currentTeam={{ id: team.id, name: team.name, slug: team.slug }}
         allTeams={teamList}
+        userEmail={admin.email}
       />
       <main className="max-w-6xl mx-auto px-4 pt-6 pb-24">
         <TeamDetailContent team={team} vibeMetrics={vibeMetrics} vibeInsights={vibeInsights} ceremoniesSessions={ceremoniesSessions} />

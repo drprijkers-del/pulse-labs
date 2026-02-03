@@ -9,7 +9,7 @@ export const metadata = {
 }
 
 export default async function BacklogPage() {
-  await requireAdmin()
+  const admin = await requireAdmin()
 
   const [backlogItems, releases] = await Promise.all([
     getBacklogItems(),
@@ -18,7 +18,7 @@ export default async function BacklogPage() {
 
   return (
     <>
-      <AdminHeader />
+      <AdminHeader userEmail={admin.email} />
       <main className="max-w-6xl mx-auto px-4 pt-8 pb-24">
         <BacklogPageContent items={backlogItems} releases={releases} />
       </main>

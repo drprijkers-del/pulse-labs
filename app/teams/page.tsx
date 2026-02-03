@@ -4,13 +4,13 @@ import { AdminHeader } from '@/components/admin/header'
 import { TeamsPageContent } from '@/components/teams/teams-page-content'
 
 export default async function TeamsPage() {
-  await requireAdmin()
+  const admin = await requireAdmin()
 
   const teams = await getTeamsUnified()
 
   return (
     <>
-      <AdminHeader />
+      <AdminHeader userEmail={admin.email} />
       <main className="max-w-6xl mx-auto px-4 pt-8 pb-24">
         <TeamsPageContent teams={teams} />
       </main>
