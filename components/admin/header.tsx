@@ -38,6 +38,7 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userRole }: A
   const [showTeamSelector, setShowTeamSelector] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const [showRemindersInfo, setShowRemindersInfo] = useState(false)
   const { language, setLanguage } = useLanguage()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -257,6 +258,20 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userRole }: A
                           ))}
                         </div>
                       )}
+
+                      {/* Team Reminders (coming soon) */}
+                      <div className="border-t border-stone-200 dark:border-stone-700 mt-1 pt-1">
+                        <button
+                          onClick={() => {
+                            setShowRemindersInfo(true)
+                            setShowMoreMenu(false)
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
+                        >
+                          <span>{t('teamRemindersSoon')}</span>
+                          <span className="text-xs text-stone-400 dark:text-stone-500 hidden sm:inline ml-1">· {t('teamRemindersSubtitle')}</span>
+                        </button>
+                      </div>
 
                       {/* Social Share */}
                       <div className="border-t border-stone-200 dark:border-stone-700 mt-1 pt-1">
@@ -556,6 +571,21 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userRole }: A
                 </svg>
                 {t('backlogTab')}
               </Link>
+              {/* Team Reminders (coming soon) */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowRemindersInfo(true)
+                  setMobileMenuOpen(false)
+                }}
+                className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 active:bg-stone-100 dark:active:bg-stone-700 transition-colors touch-manipulation"
+              >
+                <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {t('teamRemindersSoon')}
+              </button>
             </div>
 
             {/* Settings */}
@@ -680,6 +710,30 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userRole }: A
                 </Button>
               </a>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Team Reminders Info Modal */}
+      {showRemindersInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRemindersInfo(false)}>
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-700 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-stone-500 dark:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t('teamRemindersTitle')}</h3>
+              </div>
+            </div>
+            <div className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed whitespace-pre-line mb-4">
+              {t('teamRemindersBody')}
+            </div>
+            <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+              {t('teamRemindersNotAvailable')}
+            </p>
           </div>
         </div>
       )}
