@@ -187,6 +187,7 @@ export interface PublicCeremoniesStats {
     responseCount: number
     closedAt: string | null
   }[]
+  scoresByAngle: Record<string, number | null>
 }
 
 export async function getPublicCeremoniesStats(directTeamId?: string): Promise<PublicCeremoniesStats | null> {
@@ -197,7 +198,8 @@ export async function getPublicCeremoniesStats(directTeamId?: string): Promise<P
     teamId = context.teamId
   }
 
-  const supabase = await createClient()
+  // Use admin client when called with directTeamId (admin flow) to bypass RLS
+  const supabase = directTeamId ? await createAdminClient() : await createClient()
 
   // Get team ceremony level
   const { data: teamData } = await supabase
@@ -223,6 +225,7 @@ export async function getPublicCeremoniesStats(directTeamId?: string): Promise<P
       level,
       activeSessions: [],
       recentSessions: [],
+      scoresByAngle: {},
     }
   }
 
@@ -235,11 +238,11 @@ export async function getPublicCeremoniesStats(directTeamId?: string): Promise<P
       sessionCode: s.session_code,
     }))
 
-  // Get scores for closed sessions
+  // Get scores for all closed sessions (needed for per-angle radar + recent list)
   const sessionScores: { angle: string; score: number | null; responseCount: number; closedAt: string | null }[] = []
+  const angleScores: Record<string, number[]> = {}
 
-  for (const session of closedSessions.slice(0, 5)) {
-    // Get responses for this session
+  for (const session of closedSessions) {
     const { data: responses } = await supabase.rpc('get_delta_responses', {
       p_session_id: session.id,
     })
@@ -262,6 +265,8 @@ export async function getPublicCeremoniesStats(directTeamId?: string): Promise<P
 
       if (scoreCount > 0) {
         score = totalScore / scoreCount
+        if (!angleScores[session.angle]) angleScores[session.angle] = []
+        angleScores[session.angle].push(score)
       }
     }
 
@@ -273,10 +278,16 @@ export async function getPublicCeremoniesStats(directTeamId?: string): Promise<P
     })
   }
 
-  // Calculate overall average from sessions with scores
+  // Per-angle averages for radar chart
+  const scoresByAngle: Record<string, number | null> = {}
+  for (const [angle, scores] of Object.entries(angleScores)) {
+    scoresByAngle[angle] = Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
+  }
+
+  // Calculate overall average from sessions with scores (rounded to 1 decimal for consistency)
   const sessionsWithScores = sessionScores.filter(s => s.score !== null)
   const averageScore = sessionsWithScores.length > 0
-    ? sessionsWithScores.reduce((sum, s) => sum + (s.score || 0), 0) / sessionsWithScores.length
+    ? Math.round((sessionsWithScores.reduce((sum, s) => sum + (s.score || 0), 0) / sessionsWithScores.length) * 10) / 10
     : null
 
   return {
@@ -285,7 +296,8 @@ export async function getPublicCeremoniesStats(directTeamId?: string): Promise<P
     averageScore,
     level,
     activeSessions,
-    recentSessions: sessionScores,
+    recentSessions: sessionScores.slice(0, 5),
+    scoresByAngle,
   }
 }
 

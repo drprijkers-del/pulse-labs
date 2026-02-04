@@ -341,6 +341,17 @@ export const translations = {
 
     // Ceremonies - Team metrics
     teamHealth: 'Team Health',
+    teamHealthRadar: 'Team Radar',
+    radarOverall: 'Gemiddeld',
+    radarStrengths: 'Sterk',
+    radarFocusAreas: 'Aandacht',
+    radarHealthy: 'Gezond team — blijf koers houden',
+    radarModerate: 'Redelijk — er is ruimte voor groei',
+    radarConcern: 'Aandacht nodig — focus op verbeterpunten',
+    levelBannerShu: 'Volg de structuur. Bouw het ritme. Vertrouw het proces.',
+    levelBannerHa: 'Bevraag de regels. Experimenteer veilig. Vind wat werkt voor jouw team.',
+    levelBannerRi: 'Overstijg het framework. Creëer je eigen proces. Leid door voorbeeld.',
+    levelBannerTitle: 'Ceremonies Niveau',
     trendLabel: 'Trend',
     trendUp: 'Stijgend',
     trendDown: 'Dalend',
@@ -772,6 +783,7 @@ export const translations = {
 
     // Overall Signal
     signalTitle: 'Team Signaal',
+    signalWeighting: 'Vibe 60% + Ceremonies 40%',
     signalNoData: 'Geen data',
     signalExcellent: 'Uitstekend',
     signalGood: 'Goed',
@@ -1150,6 +1162,17 @@ export const translations = {
 
     // Ceremonies - Team metrics
     teamHealth: 'Team Health',
+    teamHealthRadar: 'Team Radar',
+    radarOverall: 'Overall',
+    radarStrengths: 'Strong',
+    radarFocusAreas: 'Focus',
+    radarHealthy: 'Healthy team — stay the course',
+    radarModerate: 'Moderate — room for growth',
+    radarConcern: 'Needs attention — focus on improvement areas',
+    levelBannerShu: 'Follow the structure. Build the habit. Trust the process.',
+    levelBannerHa: 'Question the rules. Experiment safely. Find what works for your team.',
+    levelBannerRi: 'Transcend the framework. Create your own process. Lead by example.',
+    levelBannerTitle: 'Ceremonies Level',
     trendLabel: 'Trend',
     trendUp: 'Improving',
     trendDown: 'Declining',
@@ -1581,6 +1604,7 @@ export const translations = {
 
     // Overall Signal
     signalTitle: 'Team Signal',
+    signalWeighting: 'Vibe 60% + Ceremonies 40%',
     signalNoData: 'No data',
     signalExcellent: 'Excellent',
     signalGood: 'Good',

@@ -148,10 +148,13 @@ export function OverallSignal({
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="mb-1">
             <h3 className="font-medium text-stone-700 dark:text-stone-300">
               {t('signalTitle')}
             </h3>
+            {scoreSource === 'both' && (
+              <p className="text-[10px] text-stone-400 dark:text-stone-500">{t('signalWeighting')}</p>
+            )}
           </div>
 
           {/* Source indicators */}

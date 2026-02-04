@@ -10,14 +10,17 @@ import { OverallSignal } from '@/components/teams/overall-signal'
 import { CoachQuestions } from '@/components/teams/coach-questions'
 import { FeedbackTool } from '@/components/teams/feedback-tool'
 import { VibeMetrics } from '@/components/admin/vibe-metrics'
+import { RadarChart, type RadarAxis } from '@/components/ui/radar-chart'
 import type { TeamMetrics, VibeInsight } from '@/domain/metrics/types'
 import type { CeremonySessionWithStats, CeremonyLevel } from '@/domain/ceremonies/types'
+import type { PublicCeremoniesStats } from '@/domain/metrics/public-actions'
 
 interface TeamDetailContentProps {
   team: UnifiedTeam
   vibeMetrics?: TeamMetrics | null
   vibeInsights?: VibeInsight[]
   ceremoniesSessions?: CeremonySessionWithStats[]
+  ceremonyStats?: PublicCeremoniesStats | null
 }
 
 type TabType = 'home' | 'vibe' | 'ceremonies' | 'feedback' | 'coach' | 'settings'
@@ -34,7 +37,7 @@ const ANGLE_LABELS: Record<string, string> = {
   demo: 'Demo',
 }
 
-export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremoniesSessions = [] }: TeamDetailContentProps) {
+export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremoniesSessions = [], ceremonyStats }: TeamDetailContentProps) {
   const t = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -236,8 +239,8 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
       <OverallSignal
         teamName={team.name}
         needsAttention={team.needs_attention}
-        vibeScore={team.vibe?.average_score || null}
-        ceremoniesScore={team.ceremonies?.average_score || null}
+        vibeScore={vibeMetrics?.weekVibe?.value ?? team.vibe?.average_score ?? null}
+        ceremoniesScore={ceremonyStats?.averageScore ?? team.ceremonies?.average_score ?? null}
         vibeParticipation={(() => {
           const effectiveSize = team.expected_team_size || team.vibe?.participant_count || 1
           const todayCount = team.vibe?.today_entries || 0
@@ -249,6 +252,30 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
         vibeSuggestion={vibeContext.suggestion}
         vibeCeremoniesHint={vibeContext.ceremoniesHint}
       />
+
+      {/* Pulse Labs branding */}
+      <div className="flex items-center justify-center gap-2 -mt-2">
+        <svg className="w-7 h-7" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="28" stroke="url(#plRipple)" strokeWidth="2" fill="none" opacity="0.4" />
+          <circle cx="32" cy="32" r="20" stroke="url(#plRipple)" strokeWidth="2.5" fill="none" opacity="0.6" />
+          <circle cx="32" cy="32" r="12" stroke="url(#plRipple)" strokeWidth="3" fill="none" opacity="0.85" />
+          <circle cx="32" cy="32" r="5" fill="url(#plDrop)" />
+          <defs>
+            <linearGradient id="plDrop" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ec4899" />
+              <stop offset="100%" stopColor="#a855f7" />
+            </linearGradient>
+            <linearGradient id="plRipple" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ec4899" />
+              <stop offset="100%" stopColor="#a855f7" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="flex flex-col leading-none">
+          <span className="font-bold text-sm text-stone-900 dark:text-stone-200">Pulse</span>
+          <span className="text-[7px] font-medium text-stone-400 dark:text-stone-400 uppercase tracking-widest -mt-0.5">Labs</span>
+        </div>
+      </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
           ZONE 2: SECTION CONTEXT
@@ -587,6 +614,72 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], ceremo
               {t('teamsDetailSettings')}
             </button>
           </div>
+
+          {/* Team Radar Chart */}
+          {(() => {
+            const radarAxes: RadarAxis[] = []
+            if (ceremonyStats?.scoresByAngle) {
+              for (const [angle, score] of Object.entries(ceremonyStats.scoresByAngle)) {
+                if (score !== null) {
+                  radarAxes.push({ key: angle, label: ANGLE_LABELS[angle] || angle, value: score })
+                }
+              }
+            }
+            if (vibeMetrics?.weekVibe?.value) {
+              radarAxes.push({ key: 'vibe', label: 'Vibe', value: vibeMetrics.weekVibe.value })
+            }
+            if (radarAxes.length < 3) return null
+
+            const sorted = [...radarAxes].sort((a, b) => b.value - a.value)
+            const strengths = sorted.slice(0, 2)
+            const focusAreas = sorted.slice(-2).reverse()
+
+            return (
+              <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-5">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Left: title + scores */}
+                  <div className="sm:w-52 shrink-0 flex flex-col">
+                    <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-4">{t('teamHealthRadar')}</h3>
+
+                    <div className="space-y-3">
+                      {/* Strengths */}
+                      <div className="rounded-lg bg-green-50 dark:bg-green-900/15 px-3 py-2">
+                        <div className="text-[10px] uppercase tracking-wider font-semibold text-green-600 dark:text-green-400 mb-1.5">{t('radarStrengths')}</div>
+                        {strengths.map(s => (
+                          <div key={s.key} className="flex items-center justify-between py-px">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                              <span className="text-xs text-stone-700 dark:text-stone-300">{s.label}</span>
+                            </div>
+                            <span className="text-xs font-bold tabular-nums text-green-700 dark:text-green-400">{s.value.toFixed(1)}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Focus areas */}
+                      <div className="rounded-lg bg-amber-50 dark:bg-amber-900/15 px-3 py-2">
+                        <div className="text-[10px] uppercase tracking-wider font-semibold text-amber-600 dark:text-amber-400 mb-1.5">{t('radarFocusAreas')}</div>
+                        {focusAreas.map(s => (
+                          <div key={s.key} className="flex items-center justify-between py-px">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              <span className="text-xs text-stone-700 dark:text-stone-300">{s.label}</span>
+                            </div>
+                            <span className="text-xs font-bold tabular-nums text-amber-700 dark:text-amber-400">{s.value.toFixed(1)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: radar chart centered */}
+                  <div className="flex-1 flex items-center justify-center">
+                    <RadarChart axes={radarAxes} size={400} />
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Share Results Section */}
           {shareUrl ? (
