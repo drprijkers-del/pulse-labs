@@ -234,18 +234,16 @@ export function TeamResultsView({ teamName, teamSlug, teamId }: TeamResultsViewP
             >
               {t('resultsCheckin')}
             </Link>
-            {/* Close button (admin - back to team) */}
-            {teamId && (
-              <Link
-                href={`/teams/${teamId}`}
-                className="p-2 text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
-                title={t('closePage')}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Link>
-            )}
+            {/* Close button - admin goes to team detail, others go to check-in */}
+            <Link
+              href={teamId ? `/teams/${teamId}` : `/vibe/t/${teamSlug}`}
+              className="p-2 text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+              title={t('closePage')}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Link>
           </div>
         </div>
       </header>
