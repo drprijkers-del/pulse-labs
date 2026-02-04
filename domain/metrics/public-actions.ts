@@ -1,7 +1,8 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { getTeamContext } from '@/lib/tenant/context'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getTeamContext, generateToken, hashToken } from '@/lib/tenant/context'
+import { getAdminUser } from '@/lib/auth/admin'
 import type { TeamMetrics, DailyVibe } from './types'
 import {
   buildVibeMetric,
@@ -342,4 +343,34 @@ export async function getCoachQuestion(language: 'nl' | 'en' = 'nl', directTeamI
   // Pick a random question from the set
   const randomIndex = Math.floor(Math.random() * questionSet.length)
   return questionSet[randomIndex][language]
+}
+
+/**
+ * Get a shareable results URL for a team (admin only)
+ * Generates a new invite token and returns the results page URL with token
+ */
+export async function getResultsShareUrl(teamId: string): Promise<string | null> {
+  const adminUser = await getAdminUser()
+  if (!adminUser) return null
+
+  const supabase = await createClient()
+
+  // Verify team ownership
+  let query = supabase.from('teams').select('slug').eq('id', teamId)
+  if (adminUser.role !== 'super_admin') {
+    query = query.eq('owner_id', adminUser.id)
+  }
+  const { data: team } = await query.single()
+  if (!team) return null
+
+  // Generate new token
+  const adminSupabase = await createAdminClient()
+  const token = generateToken()
+  const tokenHash = hashToken(token)
+
+  await adminSupabase.from('invite_links').update({ is_active: false }).eq('team_id', teamId)
+  await adminSupabase.from('invite_links').insert({ team_id: teamId, token_hash: tokenHash })
+
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').trim()
+  return `${baseUrl}/results/${team.slug}?k=${token}`
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslation, useLanguage } from '@/lib/i18n/context'
-import { getPublicTeamMetrics, getPublicVibeHistory, getPublicCeremoniesStats, getCoachQuestion, type PublicCeremoniesStats } from '@/domain/metrics/public-actions'
+import { getPublicTeamMetrics, getPublicVibeHistory, getPublicCeremoniesStats, getCoachQuestion, getResultsShareUrl, type PublicCeremoniesStats } from '@/domain/metrics/public-actions'
 import type { TeamMetrics, DailyVibe } from '@/domain/metrics/types'
 
 const ANGLE_LABELS: Record<string, string> = {
@@ -123,6 +123,8 @@ export function TeamResultsView({ teamName, teamSlug, teamId }: TeamResultsViewP
   const [coachQuestion, setCoachQuestion] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [shareLoading, setShareLoading] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -191,12 +193,60 @@ export function TeamResultsView({ teamName, teamSlug, teamId }: TeamResultsViewP
             <h1 className="font-bold text-stone-900 dark:text-stone-100">{teamName}</h1>
             <p className="text-xs text-stone-500 dark:text-stone-400">{t('resultsTitle')}</p>
           </div>
-          <Link
-            href={`/vibe/t/${teamSlug}`}
-            className="px-3 py-1.5 text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors"
-          >
-            {t('resultsCheckin')}
-          </Link>
+          <div className="flex items-center gap-1">
+            {/* Share button (admin only) */}
+            {teamId && (
+              <button
+                onClick={async () => {
+                  setShareLoading(true)
+                  const url = await getResultsShareUrl(teamId)
+                  setShareLoading(false)
+                  if (url) {
+                    navigator.clipboard.writeText(url)
+                    setShareCopied(true)
+                    setTimeout(() => setShareCopied(false), 2000)
+                  }
+                }}
+                disabled={shareLoading}
+                className="p-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+                title={t('shareCopy')}
+              >
+                {shareCopied ? (
+                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : shareLoading ? (
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                )}
+              </button>
+            )}
+            {/* Check-in link */}
+            <Link
+              href={`/vibe/t/${teamSlug}`}
+              className="px-3 py-1.5 text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors"
+            >
+              {t('resultsCheckin')}
+            </Link>
+            {/* Close button (admin - back to team) */}
+            {teamId && (
+              <Link
+                href={`/teams/${teamId}`}
+                className="p-2 text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+                title={t('closePage')}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
