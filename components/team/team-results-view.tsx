@@ -27,6 +27,7 @@ const LEVEL_INFO: Record<string, { kanji: string; label: string; color: string }
 interface TeamResultsViewProps {
   teamName: string
   teamSlug: string
+  teamId?: string // Optional: passed when admin accesses directly (bypasses cookie)
 }
 
 // Simple sparkline chart component
@@ -113,7 +114,7 @@ function ZoneIndicator({ zone, value }: { zone: string | null; value: number | n
   )
 }
 
-export function TeamResultsView({ teamName, teamSlug }: TeamResultsViewProps) {
+export function TeamResultsView({ teamName, teamSlug, teamId }: TeamResultsViewProps) {
   const t = useTranslation()
   const { language } = useLanguage()
   const [metrics, setMetrics] = useState<TeamMetrics | null>(null)
@@ -127,10 +128,10 @@ export function TeamResultsView({ teamName, teamSlug }: TeamResultsViewProps) {
     async function loadData() {
       try {
         const [metricsResult, historyData, ceremoniesData, question] = await Promise.all([
-          getPublicTeamMetrics(),
-          getPublicVibeHistory(),
-          getPublicCeremoniesStats(),
-          getCoachQuestion(language as 'nl' | 'en'),
+          getPublicTeamMetrics(teamId),
+          getPublicVibeHistory(teamId),
+          getPublicCeremoniesStats(teamId),
+          getCoachQuestion(language as 'nl' | 'en', teamId),
         ])
 
         if (metricsResult.error) {

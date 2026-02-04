@@ -17,20 +17,22 @@ import {
  * Get team metrics for public/team member view (authenticated via team cookie)
  * This is a read-only version that doesn't require admin login
  */
-export async function getPublicTeamMetrics(): Promise<{
+export async function getPublicTeamMetrics(directTeamId?: string): Promise<{
   metrics: TeamMetrics | null
   teamName: string | null
   error?: string
 }> {
-  // Get team context from cookie (set when user accessed via invite link)
-  const context = await getTeamContext()
-
-  if (!context) {
-    return { metrics: null, teamName: null, error: 'no_access' }
+  // Use direct team ID (admin flow) or get from cookie (team member flow)
+  let teamId = directTeamId
+  if (!teamId) {
+    const context = await getTeamContext()
+    if (!context) {
+      return { metrics: null, teamName: null, error: 'no_access' }
+    }
+    teamId = context.teamId
   }
 
   const supabase = await createClient()
-  const teamId = context.teamId
 
   // Get team info including expected_team_size
   const { data: team } = await supabase
@@ -144,17 +146,18 @@ export async function getPublicTeamMetrics(): Promise<{
 /**
  * Get daily vibe history for charts (public version)
  */
-export async function getPublicVibeHistory(): Promise<DailyVibe[]> {
-  const context = await getTeamContext()
-
-  if (!context) {
-    return []
+export async function getPublicVibeHistory(directTeamId?: string): Promise<DailyVibe[]> {
+  let teamId = directTeamId
+  if (!teamId) {
+    const context = await getTeamContext()
+    if (!context) return []
+    teamId = context.teamId
   }
 
   const supabase = await createClient()
 
   const { data: rawHistory } = await supabase
-    .rpc('get_team_trend', { p_team_id: context.teamId })
+    .rpc('get_team_trend', { p_team_id: teamId })
 
   return (rawHistory || []).map((d: { date: string; average: number; count: number }) => ({
     date: d.date,
@@ -185,11 +188,12 @@ export interface PublicCeremoniesStats {
   }[]
 }
 
-export async function getPublicCeremoniesStats(): Promise<PublicCeremoniesStats | null> {
-  const context = await getTeamContext()
-
-  if (!context) {
-    return null
+export async function getPublicCeremoniesStats(directTeamId?: string): Promise<PublicCeremoniesStats | null> {
+  let teamId = directTeamId
+  if (!teamId) {
+    const context = await getTeamContext()
+    if (!context) return null
+    teamId = context.teamId
   }
 
   const supabase = await createClient()
@@ -198,7 +202,7 @@ export async function getPublicCeremoniesStats(): Promise<PublicCeremoniesStats 
   const { data: teamData } = await supabase
     .from('teams')
     .select('ceremony_level')
-    .eq('id', context.teamId)
+    .eq('id', teamId)
     .single()
 
   const level = (teamData?.ceremony_level as 'shu' | 'ha' | 'ri') || 'shu'
@@ -207,7 +211,7 @@ export async function getPublicCeremoniesStats(): Promise<PublicCeremoniesStats 
   const { data: sessions } = await supabase
     .from('delta_sessions')
     .select('id, angle, status, closed_at, session_code')
-    .eq('team_id', context.teamId)
+    .eq('team_id', teamId)
     .order('closed_at', { ascending: false })
 
   if (!sessions || sessions.length === 0) {
@@ -320,8 +324,8 @@ const COACH_QUESTIONS: {
   ],
 }
 
-export async function getCoachQuestion(language: 'nl' | 'en' = 'nl'): Promise<string> {
-  const { metrics } = await getPublicTeamMetrics()
+export async function getCoachQuestion(language: 'nl' | 'en' = 'nl', directTeamId?: string): Promise<string> {
+  const { metrics } = await getPublicTeamMetrics(directTeamId)
 
   let questionSet: CoachQuestion[]
 
