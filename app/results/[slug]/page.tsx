@@ -24,15 +24,14 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
     return <InvalidLink message="Deze link is niet geldig of verlopen." />
   }
 
-  // Get team context from cookie (team member flow)
-  const context = await getTeamContext()
+  // Check both auth methods in parallel
+  const [context, adminUser] = await Promise.all([
+    getTeamContext(),
+    getAdminUser(),
+  ])
 
-  if (context && context.teamSlug === slug) {
-    return <TeamResultsView teamName={context.teamName} teamSlug={context.teamSlug} />
-  }
-
-  // Fallback: check if user is a logged-in admin with access to this team
-  const adminUser = await getAdminUser()
+  // If admin, look up team to get teamId (needed for share/close buttons)
+  let adminTeam: { id: string; name: string; slug: string } | null = null
   if (adminUser) {
     const supabase = await createClient()
     let query = supabase.from('teams').select('id, name, slug').eq('slug', slug)
@@ -40,10 +39,19 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
       query = query.eq('owner_id', adminUser.id)
     }
     const { data: team } = await query.single()
-
     if (team) {
-      return <TeamResultsView teamName={team.name} teamSlug={team.slug} teamId={team.id} />
+      adminTeam = team
     }
+  }
+
+  // Cookie path (team member or admin who previously used invite link)
+  if (context && context.teamSlug === slug) {
+    return <TeamResultsView teamName={context.teamName} teamSlug={context.teamSlug} teamId={adminTeam?.id} />
+  }
+
+  // Admin-only path (no cookie, but logged in as admin with access)
+  if (adminTeam) {
+    return <TeamResultsView teamName={adminTeam.name} teamSlug={adminTeam.slug} teamId={adminTeam.id} />
   }
 
   return <InvalidLink message="Je hebt geen toegang tot deze resultaten. Gebruik de uitnodigingslink." />
