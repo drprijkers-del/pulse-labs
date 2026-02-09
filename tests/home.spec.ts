@@ -10,7 +10,7 @@ test.describe('Homepage', () => {
   test('shows core tools section with Way of Work (not Ceremonies)', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Way of Work' })).toBeVisible()
-    await expect(page.getByText('Vibe Check')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Vibe Check' })).toBeVisible()
     // Check for feedback and coach sections (NL or EN depending on browser language)
     const body = await page.locator('body').textContent() || ''
     expect(body.includes('Team Feedback') || body.includes('Feedback')).toBeTruthy()
