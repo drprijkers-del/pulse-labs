@@ -2,15 +2,19 @@
 
 import Link from 'next/link'
 import { UnifiedTeam } from '@/domain/teams/actions'
+import { type TeamOwner } from '@/app/teams/page'
 import { TeamsListContent } from '@/components/teams/teams-list-content'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/lib/i18n/context'
 
 interface TeamsPageContentProps {
   teams: UnifiedTeam[]
+  owners?: TeamOwner[]
+  userRole?: 'super_admin' | 'scrum_master'
+  currentUserId?: string
 }
 
-export function TeamsPageContent({ teams }: TeamsPageContentProps) {
+export function TeamsPageContent({ teams, owners = [], userRole, currentUserId }: TeamsPageContentProps) {
   const t = useTranslation()
 
   return (
@@ -39,7 +43,7 @@ export function TeamsPageContent({ teams }: TeamsPageContentProps) {
       </div>
 
       {/* Teams list */}
-      <TeamsListContent teams={teams} />
+      <TeamsListContent teams={teams} owners={owners} userRole={userRole} currentUserId={currentUserId} />
     </div>
   )
 }

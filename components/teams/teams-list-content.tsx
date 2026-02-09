@@ -3,22 +3,27 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { UnifiedTeam } from '@/domain/teams/actions'
+import { type TeamOwner } from '@/app/teams/page'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/lib/i18n/context'
 
 interface TeamsListContentProps {
   teams: UnifiedTeam[]
+  owners?: TeamOwner[]
+  userRole?: 'super_admin' | 'scrum_master'
+  currentUserId?: string
 }
 
 type FilterType = 'all' | 'needs_attention'
 
-export function TeamsListContent({ teams }: TeamsListContentProps) {
+export function TeamsListContent({ teams, owners = [], userRole, currentUserId }: TeamsListContentProps) {
   const t = useTranslation()
   const [filter, setFilter] = useState<FilterType>('all')
+  const [selectedOwner, setSelectedOwner] = useState<string>(currentUserId ?? 'all')
 
   const filteredTeams = teams.filter(team => {
-    if (filter === 'all') return true
-    if (filter === 'needs_attention') return team.needs_attention
+    if (filter === 'needs_attention' && !team.needs_attention) return false
+    if (selectedOwner !== 'all' && team.owner_id !== selectedOwner) return false
     return true
   })
 
@@ -53,7 +58,10 @@ export function TeamsListContent({ teams }: TeamsListContentProps) {
         {filterButtons.map(({ key, label }) => (
           <button
             key={key}
-            onClick={() => setFilter(key)}
+            onClick={() => {
+              setFilter(key)
+              if (key === 'all') setSelectedOwner('all')
+            }}
             className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               filter === key
                 ? 'bg-cyan-500 text-white'
@@ -68,11 +76,47 @@ export function TeamsListContent({ teams }: TeamsListContentProps) {
             )}
           </button>
         ))}
-        {/* Levels info button - hidden for now */}
+
+        {/* Account filter dropdown - super admins only */}
+        {userRole === 'super_admin' && owners.length > 0 && (
+          <select
+            value={selectedOwner}
+            onChange={(e) => setSelectedOwner(e.target.value)}
+            className="px-3 py-2 rounded-full text-sm font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-0 outline-none cursor-pointer hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+          >
+            <option value="all">{t('teamsFilterAllAccounts')}</option>
+            {owners.map(owner => {
+              const count = teams.filter(t => t.owner_id === owner.id).length
+              return (
+                <option key={owner.id} value={owner.id}>
+                  {owner.email} ({count})
+                </option>
+              )
+            })}
+          </select>
+        )}
       </div>
 
       {/* Teams list */}
       {filteredTeams.length === 0 ? (
+        filter === 'needs_attention' && teams.length > 0 ? (
+          /* Positive message when no teams need attention */
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50/30 dark:from-stone-800 dark:to-emerald-900/20 rounded-2xl border border-green-200 dark:border-green-800 p-8 sm:p-12">
+            <div className="max-w-md mx-auto text-center">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-2">
+                {t('teamsAllGood')}
+              </h3>
+              <p className="text-stone-500 dark:text-stone-400">
+                {t('teamsAllGoodMessage')}
+              </p>
+            </div>
+          </div>
+        ) : (
         <div className="bg-gradient-to-br from-stone-50 to-cyan-50/30 dark:from-stone-800 dark:to-cyan-900/20 rounded-2xl border border-stone-200 dark:border-stone-700 p-8 sm:p-12">
           <div className="max-w-md mx-auto text-center">
             {/* Lab flask icon - professional icon instead of emoji */}
@@ -139,6 +183,7 @@ export function TeamsListContent({ teams }: TeamsListContentProps) {
             </p>
           </div>
         </div>
+        )
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTeams.map(team => {
