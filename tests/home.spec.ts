@@ -32,7 +32,7 @@ test.describe('Homepage', () => {
     await expect(ctaButton).toBeVisible({ timeout: 5000 })
     await ctaButton.click()
     // Should redirect to login if not authenticated
-    await expect(page).toHaveURL(/\/(teams|login)/)
+    await expect(page).toHaveURL(/\/(teams|sign-in)/)
   })
 
   test('language toggle switches to English', async ({ page }) => {
