@@ -815,8 +815,21 @@ export const translations = {
     onboardingPreviewVibe: 'Vibe score',
     onboardingPreviewCoach: 'Coach vraag',
     onboardingPreviewQuestion: 'Wat zou jullie helpen om de daily standup korter en effectiever te maken?',
-    onboardingPreviewAngleHint: 'Zo zien ingevulde Way of Work resultaten eruit',
-    onboardingPreviewHint: 'Zo ziet je team rapport eruit na een paar dagen',
+    onboardingPreviewAngleHint: 'Dit is een vereenvoudigd voorbeeld — het echte rapport bevat meer stellingen, scores en experimenten.',
+    onboardingPreviewHint: 'Dit is een vereenvoudigd voorbeeld — het echte rapport bevat meer inzichten, trends en aanbevelingen.',
+
+    // Signup modal (auth gate)
+    signupModalTitle: 'Wil je dit bewaren?',
+    signupModalBody: 'We sturen je een veilige loginlink zodat je hier later op verder kunt.\nGeen wachtwoord. Geen spam.',
+    signupModalEmail: 'E-mailadres',
+    signupModalEmailPlaceholder: 'je@bedrijf.nl',
+    signupModalSubmit: 'Stuur mij een loginlink',
+    signupModalDismiss: 'Ga verder zonder opslaan',
+    signupModalCheckEmail: 'Check je mail',
+    signupModalCheckEmailBody: 'Check je mail. Je kunt hier straks direct verder.',
+    signupModalSending: 'Link versturen...',
+    signupModalError: 'Er ging iets mis. Probeer het opnieuw.',
+    signupModalInvalidEmail: 'Vul een geldig e-mailadres in.',
 
     // Overall Signal
     signalTitle: 'Team Signaal',
@@ -1673,8 +1686,21 @@ export const translations = {
     onboardingPreviewVibe: 'Vibe score',
     onboardingPreviewCoach: 'Coach question',
     onboardingPreviewQuestion: 'What would help you make the daily standup shorter and more effective?',
-    onboardingPreviewAngleHint: 'This is what completed Way of Work results look like',
-    onboardingPreviewHint: 'This is what your team report looks like after a few days',
+    onboardingPreviewAngleHint: 'This is a simplified preview — the full report includes more statements, scores and experiments.',
+    onboardingPreviewHint: 'This is a simplified preview — the full report includes more insights, trends and recommendations.',
+
+    // Signup modal (auth gate)
+    signupModalTitle: 'Want to save this?',
+    signupModalBody: 'We\'ll send you a secure login link so you can pick up where you left off.\nNo password. No spam.',
+    signupModalEmail: 'Email address',
+    signupModalEmailPlaceholder: 'you@company.com',
+    signupModalSubmit: 'Send me a login link',
+    signupModalDismiss: 'Continue without saving',
+    signupModalCheckEmail: 'Check your email',
+    signupModalCheckEmailBody: 'Check your email. You can continue right where you left off.',
+    signupModalSending: 'Sending link...',
+    signupModalError: 'Something went wrong. Please try again.',
+    signupModalInvalidEmail: 'Please enter a valid email address.',
 
     // Overall Signal
     signalTitle: 'Team Signal',

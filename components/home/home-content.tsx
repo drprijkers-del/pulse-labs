@@ -59,7 +59,7 @@ export function HomeContent() {
           </div>
 
           {/* Main headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-stone-100 via-pink-100 to-stone-100">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight text-transparent bg-clip-text bg-linear-to-r from-stone-100 via-pink-100 to-stone-100">
             {t('homeHeadline')}
           </h1>
 
@@ -70,15 +70,16 @@ export function HomeContent() {
           </p>
 
           {/* CTA */}
-          <Link href="/teams">
-            <button className="group relative px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-semibold text-white shadow-lg shadow-pink-900/30 hover:shadow-pink-500/30 hover:from-pink-500 hover:to-purple-500 transition-all duration-300 mb-12">
-              <span className="relative z-10 flex items-center gap-2">
-                {t('homeGetStarted')}
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </span>
-            </button>
+          <Link
+            href="/teams"
+            className="group relative inline-flex px-8 py-4 bg-linear-to-r from-pink-600 to-purple-600 rounded-xl font-semibold text-white shadow-lg shadow-pink-900/30 hover:shadow-pink-500/30 hover:from-pink-500 hover:to-purple-500 transition-all duration-300 mb-12"
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              {t('homeGetStarted')}
+              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </span>
           </Link>
 
           {/* Core Tools */}
@@ -148,7 +149,7 @@ export function HomeContent() {
           </div>
 
           {/* Feedback question */}
-          <div className="mb-12 p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl border border-amber-500/20">
+          <div className="mb-12 p-6 bg-linear-to-r from-amber-500/10 to-orange-500/10 rounded-2xl border border-amber-500/20">
             <h3 className="text-lg font-semibold text-stone-200 mb-2">{t('homeWhatNext')}</h3>
             <p className="text-sm text-stone-400 mb-4">{t('homeWhatNextDesc')}</p>
             <a
@@ -177,9 +178,10 @@ export function HomeContent() {
             </Link>
           </div>
 
-          {/* Login hint */}
-          <p className="text-sm text-stone-500">
-            {t('labLoginHint')}
+          <p className="text-sm text-stone-500 mt-4">
+            <Link href="/sign-in" className="hover:text-stone-300 transition-colors">
+              {t('labLoginHint')}
+            </Link>
           </p>
         </div>
       </main>

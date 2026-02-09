@@ -21,7 +21,40 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: '#e11d48',
+          colorBackground: '#1c1917',
+          colorInputBackground: '#292524',
+          colorInputText: '#f5f5f4',
+          colorText: '#f5f5f4',
+          colorTextSecondary: '#a8a29e',
+          colorNeutral: '#a8a29e',
+          borderRadius: '0.75rem',
+          fontFamily: 'var(--font-geist), system-ui, sans-serif',
+        },
+        elements: {
+          card: 'shadow-xl border border-stone-700/50',
+          formButtonPrimary: 'bg-rose-600 hover:bg-rose-500',
+          footerActionLink: 'text-rose-400 hover:text-rose-300',
+        },
+      }}
+      localization={{
+        signIn: {
+          start: {
+            title: 'Log in',
+            subtitle: 'Welkom terug bij Pulse Labs',
+          },
+        },
+        signUp: {
+          start: {
+            title: 'Account aanmaken',
+            subtitle: 'Maak een account om aan de slag te gaan',
+          },
+        },
+      }}
+    >
       <html lang="nl" suppressHydrationWarning>
         <head>
           <script

@@ -1,6 +1,11 @@
 import { test as setup, expect } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
 
 const authFile = 'tests/.auth/session.json'
+
+// Ensure directory exists
+fs.mkdirSync(path.dirname(authFile), { recursive: true })
 
 /**
  * Authenticate once before all authenticated tests.

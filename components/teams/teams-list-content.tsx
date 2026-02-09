@@ -289,16 +289,29 @@ export function TeamsListContent({ teams, owners = [], userRole, currentUserId }
 
                       <div className="p-3 space-y-3">
                         {/* Vibe score + sparkline */}
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                            <span className="text-base font-bold text-stone-900 dark:text-stone-100">3.8</span>
-                            <span className="text-[10px] text-stone-400">{t('onboardingPreviewVibe')}</span>
+                        <div className="bg-white dark:bg-stone-800/80 rounded-lg p-3 border border-stone-200 dark:border-stone-700">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                              <span className="text-[10px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">{t('onboardingPreviewVibe')}</span>
+                            </div>
+                            <span className="text-[9px] text-green-600 dark:text-green-400 font-medium">+0.3 deze week</span>
                           </div>
-                          <div className="flex-1 h-6">
-                            <svg viewBox="0 0 200 24" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
-                              <polyline points="0,18 30,16 60,20 90,12 120,14 150,8 180,10 200,6" fill="none" className="text-cyan-500" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
+                          <div className="flex items-end gap-3">
+                            <span className="text-2xl font-bold text-stone-900 dark:text-stone-100 leading-none">3.8</span>
+                            <div className="flex-1 h-8 pb-0.5">
+                              <svg viewBox="0 0 200 28" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+                                <defs>
+                                  <linearGradient id="vibeGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="currentColor" stopOpacity="0.15" />
+                                    <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+                                  </linearGradient>
+                                </defs>
+                                <polygon points="0,20 30,18 60,22 90,14 120,16 150,10 180,12 200,8 200,28 0,28" fill="url(#vibeGrad)" className="text-cyan-500" />
+                                <polyline points="0,20 30,18 60,22 90,14 120,16 150,10 180,12 200,8" fill="none" className="text-cyan-500" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <circle cx="200" cy="8" r="3" className="fill-cyan-500" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
 

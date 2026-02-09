@@ -4,13 +4,16 @@ import { NextResponse } from 'next/server'
 // Public routes that do NOT require Clerk authentication
 const isPublicRoute = createRouteMatcher([
   '/login(.*)',
+  '/sign-in(.*)',
   '/sign-up(.*)',
+  '/contact(.*)',
   '/vibe/t/(.*)',
   '/d/(.*)',
   '/results/(.*)',
   '/participate/(.*)',
   '/api/auth/team(.*)',
   '/api/webhooks/(.*)',
+  '/api/contact(.*)',
   '/',
 ])
 
@@ -25,7 +28,7 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.redirect(new URL('/vibe/admin/teams', request.url))
   }
   if (pathname === '/admin/login') {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/sign-in', request.url))
   }
   if (pathname.startsWith('/t/')) {
     const newPath = pathname.replace('/t/', '/vibe/t/')
@@ -37,10 +40,10 @@ export default clerkMiddleware(async (auth, request) => {
 
   // Redirect old login pages to unified login
   if (pathname === '/super-admin/login') {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/sign-in', request.url))
   }
   if (pathname === '/vibe/admin/login') {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 
   // Protect non-public routes
