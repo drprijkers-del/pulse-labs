@@ -32,6 +32,7 @@ export type WowLevel = 'shu' | 'ha' | 'ri'
 export interface Statement {
   id: string
   text: string
+  textNL: string
   angle: WowAngle
   level: WowLevel  // Which Shu-Ha-Ri level this statement belongs to
 }

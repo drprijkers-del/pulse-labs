@@ -376,12 +376,12 @@ export async function getResultsShareUrl(teamId: string): Promise<string | null>
   const { data: team } = await query.single()
   if (!team) return null
 
-  // Generate new token
+  // Generate a new token without deactivating existing ones,
+  // so previously shared links remain valid
   const adminSupabase = await createAdminClient()
   const token = generateToken()
   const tokenHash = hashToken(token)
 
-  await adminSupabase.from('invite_links').update({ is_active: false }).eq('team_id', teamId)
   await adminSupabase.from('invite_links').insert({ team_id: teamId, token_hash: tokenHash })
 
   const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').trim()

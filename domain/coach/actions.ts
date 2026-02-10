@@ -7,6 +7,7 @@ import { getTeamMetrics } from '@/domain/metrics/actions'
 import { getTeamSessions, getTeamStats, synthesizeSession } from '@/domain/wow/actions'
 import { getLanguage } from '@/lib/i18n/server'
 import { TIERS, type SubscriptionTier } from '@/domain/billing/tiers'
+import { getLensConfig, type CoachLens } from '@/domain/coach/lenses'
 import { createHash } from 'crypto'
 
 // ---- Types ----
@@ -145,7 +146,7 @@ export async function getCoachStatus(teamId: string): Promise<CoachStatus> {
   }
 }
 
-export async function generateCoachInsight(teamId: string): Promise<CoachInsight> {
+export async function generateCoachInsight(teamId: string, lens: CoachLens = 'general'): Promise<CoachInsight> {
   await requireAdmin()
   const tier = await getSubscriptionTier()
   const coachMode = TIERS[tier].coachMode
@@ -162,8 +163,9 @@ export async function generateCoachInsight(teamId: string): Promise<CoachInsight
     throw new Error('Daily generation limit reached')
   }
 
-  // Check cache
-  const currentHash = await computeDataHash(teamId)
+  // Check cache (include lens in hash so each lens caches separately)
+  const baseHash = await computeDataHash(teamId)
+  const currentHash = createHash('sha256').update(`${baseHash}:${lens}`).digest('hex').substring(0, 16)
   const { data: cached } = await supabase
     .from('coach_insights')
     .select('*')
@@ -183,6 +185,8 @@ export async function generateCoachInsight(teamId: string): Promise<CoachInsight
       fromCache: true,
     }
   }
+
+  const lensConfig = getLensConfig(lens)
 
   // Gather team data
   const [teamData, metrics, sessions, stats] = await Promise.all([
@@ -240,14 +244,21 @@ export async function generateCoachInsight(teamId: string): Promise<CoachInsight
     recentSessionDetails: syntheses.filter(Boolean),
   }, null, 2)
 
+  const lensPrompt = language === 'nl' ? lensConfig.systemPromptNL : lensConfig.systemPromptEN
+
   const systemPrompt = language === 'nl'
-    ? `Je bent een ervaren Agile Coach die teamdata analyseert voor een Scrum Master of Agile Coach. Je geeft observaties met data-onderbouwing en stelt gerichte coachingvragen. Wees beknopt, concreet en actiegericht. Geen bullet-point lijstjes — schrijf als een coach die naast iemand zit. Schrijf in het Nederlands. Antwoord ALLEEN in valid JSON.`
-    : `You are an experienced Agile Coach analyzing team data for a Scrum Master or Agile Coach. You provide observations backed by data and ask targeted coaching questions. Be concise, specific, and action-oriented. No bullet-point lists — write like a coach sitting next to someone. Write in English. Respond ONLY in valid JSON.`
+    ? `Je bent een ervaren Agile Coach die teamdata analyseert voor een Scrum Master of Agile Coach. Je geeft observaties met data-onderbouwing en stelt gerichte coachingvragen. Wees beknopt, concreet en actiegericht. Geen bullet-point lijstjes — schrijf als een coach die naast iemand zit. Schrijf in het Nederlands. Antwoord ALLEEN in valid JSON.\n\nCoach Lens: ${lensPrompt}\n\nBelangrijk: formuleer alle inzichten als hypotheses ("Dit kan erop wijzen dat..."). Label het team NOOIT. Verwijs alleen naar bestaande data.`
+    : `You are an experienced Agile Coach analyzing team data for a Scrum Master or Agile Coach. You provide observations backed by data and ask targeted coaching questions. Be concise, specific, and action-oriented. No bullet-point lists — write like a coach sitting next to someone. Write in English. Respond ONLY in valid JSON.\n\nCoach Lens: ${lensPrompt}\n\nImportant: phrase all insights as hypotheses ("This may indicate..."). NEVER label the team. Only reference existing data.`
+
+  const focusAngles = lensConfig.primaryAngles.length > 0
+    ? `\nPrimary focus angles for this lens: ${lensConfig.primaryAngles.join(', ')}.\nSecondary angles: ${lensConfig.secondaryAngles.join(', ')}.\nPrioritize observations about the primary angles but consider secondary angles for context.`
+    : ''
 
   const userPrompt = `Analyze this team's data and provide coaching insights.
 
 Team data:
 ${dataContext}
+${focusAngles}
 
 Provide:
 - 1-2 observations with supporting data points (cite specific numbers from the data)
@@ -275,18 +286,28 @@ Output format (strict JSON, no markdown):
     .join('')
 
   let parsed: { observations: CoachObservation[]; questions: CoachQuestion[] }
+  const cleanJson = (s: string) => s
+    .replace(/```json\n?/g, '').replace(/```\n?/g, '')
+    .replace(/,\s*([\]}])/g, '$1')  // trailing commas
+    .replace(/[\r\n]+/g, ' ')       // newlines in strings
+    .trim()
+
   try {
-    const jsonStr = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    parsed = JSON.parse(jsonStr)
+    parsed = JSON.parse(cleanJson(responseText))
   } catch {
     const match = responseText.match(/\{[\s\S]*\}/)
     if (!match) throw new Error('Failed to parse AI response')
-    parsed = JSON.parse(match[0])
+    try {
+      parsed = JSON.parse(cleanJson(match[0]))
+    } catch {
+      // Last resort: return empty result instead of crashing
+      console.error('Coach AI returned invalid JSON, using empty fallback')
+      parsed = { observations: [], questions: [] }
+    }
   }
 
-  if (!parsed.observations || !parsed.questions) {
-    throw new Error('Invalid AI response structure')
-  }
+  if (!parsed.observations) parsed.observations = []
+  if (!parsed.questions) parsed.questions = []
 
   // Cache the result
   const content = { ...parsed, language }

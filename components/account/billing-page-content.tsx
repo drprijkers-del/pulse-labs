@@ -287,8 +287,24 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
               isDowngrade={idx < currentTierIdx}
               loading={actionLoading === tierKey}
               onSelect={handleSelectTier}
+              recommended={tierKey === 'scrum_master'}
             />
           ))}
+        </div>
+
+        {/* Enterprise tier */}
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-5">
+          <div>
+            <h3 className="text-base font-bold text-stone-700 dark:text-stone-300">Enterprise</h3>
+            <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">{t('tierEnterpriseDesc')}</p>
+            <p className="text-sm font-medium text-stone-700 dark:text-stone-300 mt-1">{t('tierEnterpriseTeams')}</p>
+          </div>
+          <Link
+            href="/contact"
+            className="shrink-0 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors"
+          >
+            {t('tierEnterpriseContact')}
+          </Link>
         </div>
       </div>
 

@@ -6,7 +6,7 @@ import { getStatements } from '@/domain/wow/statements'
 import { WowAngle, WowLevel, getAngleInfo, getLevelInfo, ResponseAnswers, Statement } from '@/domain/wow/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { useTranslation } from '@/lib/i18n/context'
+import { useLanguage } from '@/lib/i18n/context'
 import { v4 as uuidv4 } from 'uuid'
 
 interface ParticipationContentProps {
@@ -26,8 +26,17 @@ export function ParticipationContent({
   title,
   wowLevel,
 }: ParticipationContentProps) {
-  const t = useTranslation()
+  const { t, language } = useLanguage()
   const [viewState, setViewState] = useState<ViewState>('loading')
+  const [showCloseHint, setShowCloseHint] = useState(false)
+
+  const handleClose = () => {
+    // window.close() only works for tabs opened via window.open()
+    // For tabs opened by the user (link, QR, URL), it's blocked by browsers
+    window.close()
+    // If still here after 300ms, the browser blocked it — show hint
+    setTimeout(() => setShowCloseHint(true), 300)
+  }
   const [statements, setStatements] = useState<Statement[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<ResponseAnswers>({})
@@ -141,13 +150,13 @@ export function ParticipationContent({
 
             {/* Close button */}
             <button
-              onClick={() => window.close()}
+              onClick={handleClose}
               className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
             >
               {t('closePage')}
             </button>
             <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
-              {t('closeThisPage')}
+              {showCloseHint ? t('closeTabManually') : t('closeThisPage')}
             </p>
           </CardContent>
         </Card>
@@ -219,13 +228,13 @@ export function ParticipationContent({
 
             {/* Close button */}
             <button
-              onClick={() => window.close()}
+              onClick={handleClose}
               className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
             >
               {t('closePage')}
             </button>
             <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
-              {t('closeThisPage')}
+              {showCloseHint ? t('closeTabManually') : t('closeThisPage')}
             </p>
           </CardContent>
         </Card>
@@ -326,7 +335,7 @@ export function ParticipationContent({
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="max-w-lg w-full">
             <p className="text-white text-xl sm:text-2xl font-medium text-center leading-relaxed">
-              &ldquo;{statement.text}&rdquo;
+              &ldquo;{language === 'nl' ? statement.textNL : statement.text}&rdquo;
             </p>
           </div>
         </div>
@@ -384,13 +393,13 @@ export function ParticipationContent({
 
             {/* Close button */}
             <button
-              onClick={() => window.close()}
+              onClick={handleClose}
               className="px-6 py-2 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
             >
               {t('closePage')}
             </button>
             <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
-              {t('closeThisPage')}
+              {showCloseHint ? t('closeTabManually') : t('closeThisPage')}
             </p>
           </CardContent>
         </Card>

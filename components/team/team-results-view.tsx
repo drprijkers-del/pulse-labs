@@ -195,7 +195,7 @@ export function TeamResultsView({ teamName, teamSlug, teamId }: TeamResultsViewP
     <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-900 dark:to-stone-800">
       {/* Header */}
       <header className="bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm border-b border-stone-200 dark:border-stone-700 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-lg md:max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
             <h1 className="font-bold text-stone-900 dark:text-stone-100">{teamName}</h1>
             <p className="text-xs text-stone-500 dark:text-stone-400">{t('resultsTitle')}</p>
@@ -255,7 +255,7 @@ export function TeamResultsView({ teamName, teamSlug, teamId }: TeamResultsViewP
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-lg md:max-w-3xl mx-auto px-4 py-6 space-y-6">
         {/* Shu/Ha/Ri Level Banner */}
         {wow && (() => {
           const level = LEVEL_INFO[wow.level]

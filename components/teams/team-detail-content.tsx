@@ -1241,9 +1241,14 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], wowSes
                   defaultValue={team.expected_team_size || ''}
                   min={1}
                   max={100}
-                  placeholder={t('newTeamSizePlaceholder')}
+                  placeholder={team.detected_team_size ? `${team.detected_team_size} (${t('detectedFromData')})` : t('newTeamSizePlaceholder')}
                   className="block w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
                 />
+                {team.detected_team_size && !team.expected_team_size && (
+                  <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">
+                    {t('detectedTeamSizeHint').replace('{n}', String(team.detected_team_size))}
+                  </p>
+                )}
               </div>
 
               <Button type="submit" loading={loading === 'save-settings'} className="w-full">

@@ -40,7 +40,7 @@ export default defineConfig({
         storageState: 'tests/.auth/session.json',
       },
       dependencies: ['setup'],
-      testMatch: /\/(teams|billing|wow-session|rename-verification|smoke)\.spec\.ts/,
+      testMatch: /\/(teams|billing|billing-edge-cases|wow-session|rename-verification|smoke)\.spec\.ts/,
     },
     // Public tests (no login required)
     {

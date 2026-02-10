@@ -9,7 +9,7 @@ import { closeSession, deleteSession } from '@/domain/wow/actions'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
-import { useTranslation, TranslationFunction } from '@/lib/i18n/context'
+import { useLanguage, TranslationFunction } from '@/lib/i18n/context'
 import { AdminHeader } from '@/components/admin/header'
 
 interface SessionDetailContentProps {
@@ -21,7 +21,7 @@ interface SessionDetailContentProps {
 
 export function SessionDetailContent({ session, synthesis, shareLink, backPath }: SessionDetailContentProps) {
   const router = useRouter()
-  const t = useTranslation()
+  const { t, language } = useLanguage()
   const angleInfo = getAngleInfo(session.angle)
   const isActive = session.status === 'active'
   const isClosed = session.status === 'closed'
@@ -90,7 +90,7 @@ export function SessionDetailContent({ session, synthesis, shareLink, backPath }
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to {session.team_name || 'team'}
+          {language === 'nl' ? 'Terug naar' : 'Back to'} {session.team_name || 'team'}
         </Link>
 
       {/* Session header */}
@@ -123,6 +123,7 @@ export function SessionDetailContent({ session, synthesis, shareLink, backPath }
           copied={copied}
           onCopy={handleCopy}
           t={t}
+          language={language}
         />
       )}
 
@@ -174,7 +175,7 @@ export function SessionDetailContent({ session, synthesis, shareLink, backPath }
             </CardHeader>
             <CardContent className="space-y-4">
               {synthesis.all_scores.map((item, i) => (
-                <StatementRow key={item.statement.id} item={item} rank={i + 1} t={t} />
+                <StatementRow key={item.statement.id} item={item} rank={i + 1} t={t} language={language} />
               ))}
             </CardContent>
           </Card>
@@ -224,6 +225,34 @@ export function SessionDetailContent({ session, synthesis, shareLink, backPath }
                 <div className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">{t('followUp')}</div>
                 <p className="text-stone-900 dark:text-stone-100">{session.followup_date}</p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Share closed session results */}
+      {isClosed && shareLink && (
+        <Card className="mb-8 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20">
+          <CardContent className="py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex-1">
+                <h3 className="font-medium text-stone-900 dark:text-stone-100">{t('shareSessionResults')}</h3>
+                <p className="text-sm text-stone-600 dark:text-stone-400">{t('shareSessionResultsDesc')}</p>
+              </div>
+              <Button
+                variant="secondary"
+                className="shrink-0"
+                onClick={() => {
+                  navigator.clipboard.writeText(shareLink)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={copied ? "M5 13l4 4L19 7" : "M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"} />
+                </svg>
+                {copied ? t('copied') : t('copyLink')}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -412,7 +441,7 @@ function ScoreGauge({ score }: { score: number }) {
 }
 
 // Statement row with distribution bars
-function StatementRow({ item, rank, t }: { item: StatementScore; rank: number; t: TranslationFunction }) {
+function StatementRow({ item, rank, t, language }: { item: StatementScore; rank: number; t: TranslationFunction; language: 'nl' | 'en' }) {
   const isStrength = rank <= 2
   const isTension = rank >= 9
   const hasDisagreement = item.variance > 1.0
@@ -433,7 +462,7 @@ function StatementRow({ item, rank, t }: { item: StatementScore; rank: number; t
           {item.score.toFixed(1)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-stone-800 dark:text-stone-200 text-sm leading-relaxed">{item.statement.text}</p>
+          <p className="text-stone-800 dark:text-stone-200 text-sm leading-relaxed">{language === 'nl' ? item.statement.textNL : item.statement.text}</p>
           <div className="flex items-center gap-2 mt-1">
             {isStrength && <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-0.5 rounded">{t('strength')}</span>}
             {isTension && <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded">{t('tension')}</span>}
@@ -471,13 +500,15 @@ function SessionSetupView({
   session,
   copied,
   onCopy,
-  t
+  t,
+  language
 }: {
   shareLink: string
   session: WowSessionWithStats
   copied: boolean
   onCopy: () => void
   t: TranslationFunction
+  language: 'nl' | 'en'
 }) {
   const [showStatements, setShowStatements] = useState(false)
   const statements = getStatements(session.angle as WowAngle)
@@ -580,7 +611,7 @@ function SessionSetupView({
             <div className="mt-4 ml-11 space-y-2">
               {statements.map((statement, i) => (
                 <div key={statement.id} className="p-3 rounded-lg bg-stone-50 dark:bg-stone-700 text-sm text-stone-700 dark:text-stone-300">
-                  {i + 1}. {statement.text}
+                  {i + 1}. {language === 'nl' ? statement.textNL : statement.text}
                 </div>
               ))}
             </div>

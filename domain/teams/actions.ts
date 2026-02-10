@@ -65,6 +65,7 @@ export interface UnifiedTeam extends Team {
   // Computed
   last_updated: string
   needs_attention: boolean
+  detected_team_size?: number
 }
 
 // Helper to calculate trend by comparing two periods
@@ -428,7 +429,7 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
   const [teamResult, toolsResult, linkResult] = await Promise.all([
     supabase.from('teams').select('*').eq('id', id).single(),
     supabase.from('team_tools').select('*').eq('team_id', id),
-    supabase.from('invite_links').select('id').eq('team_id', id).eq('is_active', true).single(),
+    supabase.from('invite_links').select('id').eq('team_id', id).eq('is_active', true).limit(1).maybeSingle(),
   ])
 
   const { data: team, error } = teamResult
@@ -489,6 +490,18 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
 
   const lastUpdated = wowStats?.last_session_date || team.updated_at
 
+  // Detect team size from participation data
+  const { data: maxSession } = await supabase
+    .from('delta_sessions')
+    .select('response_count')
+    .eq('team_id', id)
+    .order('response_count', { ascending: false })
+    .limit(1)
+    .single()
+  const maxWowResponses = maxSession?.response_count || 0
+  const vibeParticipants = vibeStats?.participant_count || 0
+  const detected_team_size = Math.max(maxWowResponses, vibeParticipants) || undefined
+
   return {
     ...team,
     tools_enabled,
@@ -496,6 +509,7 @@ export async function getTeamUnified(id: string): Promise<UnifiedTeam | null> {
     wow: wowStats,
     last_updated: lastUpdated,
     needs_attention: needsAttention,
+    detected_team_size,
   }
 }
 

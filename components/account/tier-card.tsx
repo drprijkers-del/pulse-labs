@@ -10,9 +10,10 @@ interface TierCardProps {
   isDowngrade: boolean
   loading: boolean
   onSelect: (tier: SubscriptionTier) => void
+  recommended?: boolean
 }
 
-export function TierCard({ tier, isCurrent, isDowngrade, loading, onSelect }: TierCardProps) {
+export function TierCard({ tier, isCurrent, isDowngrade, loading, onSelect, recommended }: TierCardProps) {
   const t = useTranslation()
   const isPaid = tier !== 'free'
 
@@ -69,8 +70,16 @@ export function TierCard({ tier, isCurrent, isDowngrade, loading, onSelect }: Ti
     <div className={`relative flex flex-col rounded-xl border-2 p-5 transition-all ${
       isCurrent
         ? `${c.bgCurrent} ${c.borderCurrent}`
-        : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
+        : recommended
+          ? 'bg-white dark:bg-stone-800 border-cyan-400 dark:border-cyan-600 ring-2 ring-cyan-400/30 dark:ring-cyan-600/30 shadow-lg scale-105'
+          : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
     }`}>
+      {/* Recommended badge */}
+      {recommended && !isCurrent && (
+        <span className="absolute -top-3 left-4 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-cyan-500 text-white">
+          {t('tierRecommended')}
+        </span>
+      )}
       {/* Current badge */}
       {isCurrent && (
         <span className="absolute -top-3 left-4 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-cyan-500 text-white">

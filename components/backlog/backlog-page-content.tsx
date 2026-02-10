@@ -2,14 +2,16 @@
 
 import { useTranslation } from '@/lib/i18n/context'
 import { BacklogDisplay } from '@/components/backlog/backlog-display'
+import { ProGate } from '@/components/teams/pro-gate'
 import type { BacklogItem, ReleaseNote } from '@/domain/backlog/actions'
 
 interface BacklogPageContentProps {
   items: BacklogItem[]
   releases: ReleaseNote[]
+  isPro: boolean
 }
 
-export function BacklogPageContent({ items, releases }: BacklogPageContentProps) {
+export function BacklogPageContent({ items, releases, isPro }: BacklogPageContentProps) {
   const t = useTranslation()
 
   return (
@@ -24,8 +26,10 @@ export function BacklogPageContent({ items, releases }: BacklogPageContentProps)
         </p>
       </div>
 
-      {/* Backlog content */}
-      <BacklogDisplay items={items} releases={releases} />
+      {/* Backlog content — Pro only */}
+      <ProGate teamId="" isPro={isPro} feature="backlogTab">
+        <BacklogDisplay items={items} releases={releases} />
+      </ProGate>
     </div>
   )
 }

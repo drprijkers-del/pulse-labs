@@ -16,9 +16,15 @@ export async function POST(request: NextRequest) {
 
     // Fetch payment from Mollie API (this verifies authenticity)
     const payment = await getMollieClient().payments.get(paymentId)
-    const metadata = typeof payment.metadata === 'string'
-      ? JSON.parse(payment.metadata)
-      : (payment.metadata as Record<string, unknown> | null)
+    let metadata: Record<string, unknown> | null = null
+    try {
+      metadata = typeof payment.metadata === 'string'
+        ? JSON.parse(payment.metadata)
+        : (payment.metadata as Record<string, unknown> | null)
+    } catch {
+      console.error('[mollie-webhook] Invalid metadata JSON for payment:', paymentId)
+      return NextResponse.json({ error: 'Invalid metadata' }, { status: 400 })
+    }
 
     const adminUserId = metadata?.adminUserId as string | undefined
     const teamId = metadata?.teamId as string | undefined
