@@ -202,21 +202,20 @@ export function CoachSection({
                       {t('coachInterventionTitle')}
                     </h3>
                     <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{preparation.suggestedIntervention.action}</p>
-                    <div className="flex flex-wrap gap-2">
+                    <ul className="space-y-1 text-xs text-stone-500 dark:text-stone-400">
                       {preparation.suggestedIntervention.timeframe && (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                           {preparation.suggestedIntervention.timeframe}
-                        </span>
+                        </li>
                       )}
                       {preparation.suggestedIntervention.format && (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300">
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                           {preparation.suggestedIntervention.format}
-                        </span>
+                        </li>
                       )}
-                    </div>
+                    </ul>
                   </div>
 
                   {/* Disclaimer */}
