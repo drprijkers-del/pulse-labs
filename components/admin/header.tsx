@@ -8,6 +8,7 @@ import { useTranslation, useLanguage } from '@/lib/i18n/context'
 import { useTheme } from '@/lib/theme/context'
 import { Button } from '@/components/ui/button'
 import { isPaidTier, type SubscriptionTier } from '@/domain/billing/tiers'
+import { AccountModal } from '@/components/account/account-modal'
 
 interface Team {
   id: string
@@ -44,6 +45,7 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userName, use
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showRemindersInfo, setShowRemindersInfo] = useState(false)
+  const [showAccountModal, setShowAccountModal] = useState(false)
   const { language, setLanguage } = useLanguage()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -146,7 +148,7 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userName, use
 
             {/* Team Selector (when on team page) */}
             {isOnTeamPage && currentTeam && (
-              <div className="relative ml-3 pl-3 border-l border-stone-200 dark:border-stone-700">
+              <div className="relative ml-2 sm:ml-3 pl-2 sm:pl-3 border-l border-stone-200 dark:border-stone-700 min-w-0">
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
@@ -154,22 +156,22 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userName, use
                     closeAllDropdowns()
                     setShowTeamSelector(next)
                   }}
-                  className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-all ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-sm rounded-lg border transition-all ${
                     showTeamSelector
                       ? 'bg-stone-100 dark:bg-stone-800 border-stone-300 dark:border-stone-600 text-stone-900 dark:text-stone-100'
                       : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800'
                   }`}
                 >
-                  <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Select team:</span>
-                  <span className="font-semibold max-w-35 truncate">{currentTeam.name}</span>
-                  <svg className={`w-3 h-3 text-stone-400 dark:text-stone-500 transition-transform ${showTeamSelector ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="hidden sm:inline text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Select team:</span>
+                  <span className="font-semibold max-w-[8rem] sm:max-w-35 truncate">{currentTeam.name}</span>
+                  <svg className={`w-3 h-3 text-stone-400 dark:text-stone-500 transition-transform shrink-0 ${showTeamSelector ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
                 {/* Team Dropdown */}
                 {showTeamSelector && allTeams.length > 0 && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 overflow-hidden z-50">
+                  <div className="absolute top-full left-0 sm:left-0 right-0 sm:right-auto mt-2 w-auto sm:w-64 bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 overflow-hidden z-50">
                     <div className="px-4 py-3 bg-stone-50 dark:bg-stone-800/50 border-b border-stone-200 dark:border-stone-700">
                       <div className="flex items-baseline justify-between">
                         <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 uppercase tracking-wide">
@@ -369,8 +371,14 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userName, use
                       </div>
                     </div>
 
-                    {/* Billing link */}
+                    {/* Account & Billing links */}
                     <div className="border-t border-stone-100 dark:border-stone-700 mt-1 pt-1">
+                      <button
+                        onClick={() => { setShowSettingsMenu(false); setShowAccountModal(true) }}
+                        className="block w-full text-left px-3 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700"
+                      >
+                        {t('accountProfile')}
+                      </button>
                       <Link
                         href="/account/billing"
                         onClick={() => setShowSettingsMenu(false)}
@@ -529,6 +537,16 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userName, use
                 </svg>
                 {t('backlogTab')}
               </Link>
+              {/* Account */}
+              <button
+                onClick={() => { setMobileMenuOpen(false); setShowAccountModal(true) }}
+                className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-colors touch-manipulation active:bg-stone-200 dark:active:bg-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
+              >
+                <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                {t('accountProfile')}
+              </button>
               {/* Billing / Subscription */}
               <Link
                 href="/account/billing"
@@ -709,6 +727,11 @@ function AdminHeaderInner({ currentTeam, allTeams = [], userEmail, userName, use
             </p>
           </div>
         </div>
+      )}
+
+      {/* Account Modal */}
+      {showAccountModal && (
+        <AccountModal onClose={() => setShowAccountModal(false)} />
       )}
     </>
   )

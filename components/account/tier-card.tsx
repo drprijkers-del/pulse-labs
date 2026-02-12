@@ -67,11 +67,11 @@ export function TierCard({ tier, isCurrent, isDowngrade, loading, onSelect, reco
   const c = config[tier]
 
   return (
-    <div className={`relative flex flex-col rounded-xl border-2 p-5 transition-all ${
+    <div className={`relative flex flex-col rounded-xl border-2 p-4 sm:p-5 transition-all ${
       isCurrent
         ? `${c.bgCurrent} ${c.borderCurrent}`
         : recommended
-          ? 'bg-white dark:bg-stone-800 border-cyan-400 dark:border-cyan-600 ring-2 ring-cyan-400/30 dark:ring-cyan-600/30 shadow-lg scale-105'
+          ? 'bg-white dark:bg-stone-800 border-cyan-400 dark:border-cyan-600 ring-2 ring-cyan-400/30 dark:ring-cyan-600/30 shadow-lg sm:scale-105'
           : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
     }`}>
       {/* Recommended badge */}

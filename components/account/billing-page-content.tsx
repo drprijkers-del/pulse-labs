@@ -229,11 +229,11 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
 
       {/* Post-checkout: Timeout */}
       {paymentState === 'timeout' && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-center justify-between gap-4">
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-sm text-amber-700 dark:text-amber-300">{t('billingTimeoutMessage')}</p>
           <button
             onClick={() => window.location.reload()}
-            className="shrink-0 px-3 py-1.5 text-sm font-medium rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors"
+            className="self-start sm:self-auto shrink-0 px-3 py-1.5 text-sm font-medium rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors touch-manipulation"
           >
             {t('billingRefresh')}
           </button>
@@ -249,7 +249,7 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
       )}
 
       {/* Current Plan Summary */}
-      <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
+      <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4 sm:p-6">
         <div className="flex items-start justify-between mb-5">
           <div>
             <p className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1">{t('billingCurrentPlan')}</p>
@@ -306,13 +306,13 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
 
         {/* Active subscription controls */}
         {isPaidTier(tier) && billingStatus === 'active' && (
-          <div className="pt-4 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between">
+          <div className="pt-4 border-t border-stone-200 dark:border-stone-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             {billingPeriodEnd && (
               <p className="text-sm text-stone-500 dark:text-stone-400">
                 {t('billingNextPayment')}: {new Date(billingPeriodEnd).toLocaleDateString('nl-NL')}
               </p>
             )}
-            <Button variant="danger" size="sm" onClick={handleCancel} loading={actionLoading === 'cancel'}>
+            <Button variant="danger" size="sm" onClick={handleCancel} loading={actionLoading === 'cancel'} className="self-start sm:self-auto">
               {t('billingCancelSubscription')}
             </Button>
           </div>
@@ -370,7 +370,7 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
       </div>
 
       {/* What's included in Pro? */}
-      <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
+      <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4 sm:p-6">
         <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-1">{t('tierProIncludesTitle')}</h3>
         <p className="text-sm text-stone-500 dark:text-stone-400 mb-5">{t('tierProIncludesDesc')}</p>
 
@@ -503,7 +503,7 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
 
       {/* Payment History */}
       {recentPayments.length > 0 && (
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
+        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4 sm:p-6">
           <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">{t('billingPaymentHistory')}</h3>
           <div className="space-y-2">
             {recentPayments.map((payment) => (
@@ -539,7 +539,7 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
         const targetTeams = TIERS[downgradeTarget].maxTeams
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
             {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
@@ -547,7 +547,7 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
             />
 
             {/* Modal */}
-            <div className="relative bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 w-full max-w-md p-6 space-y-5">
+            <div className="relative bg-white dark:bg-stone-800 rounded-t-2xl sm:rounded-2xl shadow-2xl border-t sm:border border-stone-200 dark:border-stone-700 w-full max-w-md p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[85vh] overflow-y-auto">
               {/* Header */}
               <div>
                 <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-3">
@@ -629,7 +629,7 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => setDowngradeTarget(null)}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg border border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg border border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors touch-manipulation"
                 >
                   {t('downgradeCancel')}
                 </button>
@@ -656,12 +656,12 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
         const price = TIERS[upgradeTarget].price
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
             <div
               className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
               onClick={() => setUpgradeTarget(null)}
             />
-            <div className="relative bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 w-full max-w-md p-6 space-y-5">
+            <div className="relative bg-white dark:bg-stone-800 rounded-t-2xl sm:rounded-2xl shadow-2xl border-t sm:border border-stone-200 dark:border-stone-700 w-full max-w-md p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[85vh] overflow-y-auto">
               <div>
                 <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center mb-3">
                   <svg className="w-5 h-5 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -699,7 +699,7 @@ export function BillingPageContent({ billingInfo: initialBillingInfo }: BillingP
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => setUpgradeTarget(null)}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg border border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg border border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors touch-manipulation"
                 >
                   {t('downgradeCancel')}
                 </button>

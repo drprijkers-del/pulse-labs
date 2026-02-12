@@ -603,7 +603,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], wowSes
       {activeTab === 'settings' && (
         <div className="space-y-6">
           {/* Editable Team Settings */}
-          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
+          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4 sm:p-6">
             <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">{t('teamSettings')}</h3>
 
             {settingsSuccess && (
@@ -678,7 +678,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], wowSes
 
           {/* Data Export */}
           {team.tools_enabled.includes('vibe') && (
-            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
+            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4 sm:p-6">
               <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">{t('exportData')}</h3>
               <Button
                 variant="secondary"
@@ -695,7 +695,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], wowSes
           )}
 
           {/* Tool toggles */}
-          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
+          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4 sm:p-6">
             <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">{t('teamsToolsEnabled')}</h3>
             <div className="space-y-3">
               {/* Vibe tool card */}
@@ -811,7 +811,7 @@ export function TeamDetailContent({ team, vibeMetrics, vibeInsights = [], wowSes
           </div>
 
           {/* Danger zone */}
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 p-6">
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 p-4 sm:p-6">
             <h3 className="font-semibold text-red-900 dark:text-red-300 mb-2">{t('teamDeleteTitle')}</h3>
             <p className="text-sm text-red-700 dark:text-red-400 mb-4">{t('teamDeleteMessage')}</p>
             <Button

@@ -110,12 +110,12 @@ export function OverallSignal({
 
       {/* Content */}
       <div
-        className={`relative z-10 p-4 sm:p-6 pb-10 sm:pb-12 ${wm ? 'pl-20 sm:pl-24' : ''}`}
+        className={`relative z-10 p-4 sm:p-6 pb-10 sm:pb-12 ${wm ? 'pl-16 sm:pl-24' : ''}`}
         style={{ perspective: '600px' }}
       >
         {/* Team name */}
         <div className="flex items-center gap-2 pr-16">
-          <h1 className="text-3xl sm:text-4xl font-bold text-stone-900 dark:text-stone-100 truncate">
+          <h1 className="text-2xl sm:text-4xl font-bold text-stone-900 dark:text-stone-100 truncate">
             {teamName}
           </h1>
           {needsAttention && (

@@ -161,24 +161,24 @@ export function WowSection({ teamId, teamName, teamPlan, wowStats, wowSessions, 
             <Link
               key={session.id}
               href={`/wow/session/${session.id}`}
-              className="flex items-center justify-between p-4 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors group"
+              className="flex items-center justify-between p-3 sm:p-4 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors group touch-manipulation gap-2"
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold ${
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0 ${
                   session.status === 'active' ? 'bg-cyan-500' : 'bg-stone-400 dark:bg-stone-500'
                 }`}>
                   {(angleLabels[session.angle] || session.angle).charAt(0)}
                 </div>
-                <div>
-                  <div className="font-medium text-stone-900 dark:text-stone-100">
+                <div className="min-w-0">
+                  <div className="font-medium text-stone-900 dark:text-stone-100 truncate">
                     {angleLabels[session.angle] || session.angle}
                   </div>
-                  <div className="text-sm text-stone-500 dark:text-stone-400">
+                  <div className="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
                     {session.response_count} {t('responses')} · {session.status === 'active' ? t('active') : t('sessionsCompleted')}
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 {session.overall_score && (
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${
                     session.overall_score >= 4 ? 'bg-green-500' :

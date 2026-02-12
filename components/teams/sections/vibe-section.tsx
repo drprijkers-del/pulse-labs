@@ -103,22 +103,22 @@ export function VibeSection({
         <div className="divide-y divide-stone-100 dark:divide-stone-700">
           {/* Share link row */}
           {shareUrl ? (
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3 min-w-0">
+            <div className="p-4 space-y-3">
+              <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg bg-cyan-500 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="font-medium text-stone-900 dark:text-stone-100">Team check-in link</div>
                   <div className="text-xs text-stone-500 dark:text-stone-400">Preview what your team will see, then share via Slack or email — they can&apos;t reshare from within the page</div>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0 ml-3">
+              <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
                 <button
                   onClick={() => setShowVibeAdvanced(!showVibeAdvanced)}
-                  className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
+                  className="text-[11px] font-medium px-2.5 py-1.5 sm:py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors touch-manipulation"
                 >
                   <svg className="w-3 h-3 inline-block -mt-px mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -128,13 +128,13 @@ export function VibeSection({
                 </button>
                 <button
                   onClick={() => navigator.clipboard.writeText(shareUrl)}
-                  className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-pink-50 dark:hover:bg-pink-900/30 hover:text-pink-600 dark:hover:text-pink-400 transition-colors"
+                  className="text-[11px] font-medium px-2.5 py-1.5 sm:py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-pink-50 dark:hover:bg-pink-900/30 hover:text-pink-600 dark:hover:text-pink-400 transition-colors touch-manipulation"
                 >
                   {t('shareCopy')}
                 </button>
                 <button
                   onClick={() => window.open(shareUrl, '_blank')}
-                  className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-pink-50 dark:hover:bg-pink-900/30 hover:text-pink-600 dark:hover:text-pink-400 transition-colors"
+                  className="text-[11px] font-medium px-2.5 py-1.5 sm:py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-pink-50 dark:hover:bg-pink-900/30 hover:text-pink-600 dark:hover:text-pink-400 transition-colors touch-manipulation"
                 >
                   {t('shareOpen')}
                 </button>
@@ -185,7 +185,7 @@ export function VibeSection({
 
               <div className="divide-y divide-cyan-200/50 dark:divide-cyan-800/50">
             {/* Reset row */}
-            <div className="flex items-center justify-between p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-2">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
                   <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,14 +203,14 @@ export function VibeSection({
                   setShareUrl(null)
                   await handleGetShareLink()
                 }}
-                className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors shrink-0 ml-3"
+                className="text-[11px] font-medium px-2.5 py-1.5 sm:py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors shrink-0 self-start sm:self-auto touch-manipulation"
               >
                 {t('shareResetButton')}
               </button>
             </div>
 
             {/* Deactivate row */}
-            <div className="flex items-center justify-between p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-2">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
                   <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +235,7 @@ export function VibeSection({
                   }
                   setShareLoading(false)
                 }}
-                className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors shrink-0 ml-3"
+                className="text-[11px] font-medium px-2.5 py-1.5 sm:py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors shrink-0 self-start sm:self-auto touch-manipulation"
               >
                 {t('shareDeactivateButton')}
               </button>
@@ -246,19 +246,19 @@ export function VibeSection({
 
           {/* Results row */}
           {shareUrl && (
-            <div className="flex items-center justify-between p-4 bg-purple-50/50 dark:bg-purple-900/10">
-              <div className="flex items-center gap-3 min-w-0">
+            <div className="p-4 bg-purple-50/50 dark:bg-purple-900/10 space-y-3">
+              <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 shadow-sm flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="font-medium text-stone-900 dark:text-stone-100">Public results page</div>
                   <div className="text-xs text-stone-500 dark:text-stone-400">Screenshot-ready anonymous trends — drop in PowerPoint, Slack, or share with stakeholders</div>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0 ml-3">
+              <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
                 <button
                   onClick={() => {
                     const resultsUrl = shareUrl.replace('/vibe/t/', '/results/')
@@ -266,7 +266,7 @@ export function VibeSection({
                     setResultsCopied(true)
                     setTimeout(() => setResultsCopied(false), 2000)
                   }}
-                  className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                  className="text-[11px] font-medium px-2.5 py-1.5 sm:py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors touch-manipulation"
                 >
                   {resultsCopied ? t('shareCopied') : t('shareCopy')}
                 </button>
@@ -275,7 +275,7 @@ export function VibeSection({
                     const resultsUrl = shareUrl.replace('/vibe/t/', '/results/')
                     window.open(resultsUrl, '_blank')
                   }}
-                  className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                  className="text-[11px] font-medium px-2.5 py-1.5 sm:py-1 rounded-full bg-stone-100 dark:bg-stone-600 text-stone-400 dark:text-stone-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors touch-manipulation"
                 >
                   {t('shareOpen')}
                 </button>
